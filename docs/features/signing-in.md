@@ -26,6 +26,28 @@ inbox and a link is one click rather than six digits typed twice.
 3. **Afterwards.** `GET /auth/me` answers who the caller is, so a page reloaded with a stored
    token can confirm the session is still good rather than assuming it.
 
+## What it looks like
+
+The password step. It identifies the account and sends a code; it does not sign anybody in:
+
+![The sign-in form](../screenshots/login.png)
+
+The code step, showing which inbox to open without publishing the address:
+
+![Six boxes for the emailed code, addressed to a masked address](../screenshots/login-code.png)
+
+Signed in. The header carries the member and the way out:
+
+![The discussion list with the signed-in member in the header](../screenshots/signed-in.png)
+
+Asking to set a new password, which is accepted whatever address is given:
+
+![The forgotten password form](../screenshots/forgot-password.png)
+
+Setting it, from the emailed link:
+
+![The set a new password form](../screenshots/reset-password.png)
+
 ## Endpoints
 
 | Method | Path | Returns |
