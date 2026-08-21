@@ -75,14 +75,11 @@ function CodeInput(props: IProps) {
               return;
             }
 
-            if (event.key === 'ArrowLeft') {
-              event.preventDefault();
-              _focus(boxes.current, Math.max(index - 1, 0));
-            }
+            const moved = _moveFor(event.key, index);
 
-            if (event.key === 'ArrowRight') {
+            if (moved !== undefined) {
               event.preventDefault();
-              _focus(boxes.current, Math.min(index + 1, CODE_LENGTH - 1));
+              _focus(boxes.current, moved);
             }
           }}
           onPaste={(event) => {
@@ -113,6 +110,22 @@ function CodeInput(props: IProps) {
 }
 
 /***** Functions *****/
+
+/** Where a navigation key should land, or undefined when the key is not one. */
+function _moveFor(key: string, index: number): number | undefined {
+  switch (key) {
+    case 'ArrowLeft':
+      return Math.max(index - 1, 0);
+    case 'ArrowRight':
+      return Math.min(index + 1, CODE_LENGTH - 1);
+    case 'Home':
+      return 0;
+    case 'End':
+      return CODE_LENGTH - 1;
+    default:
+      return undefined;
+  }
+}
 
 function _focus(boxes: (HTMLInputElement | null)[], index: number): void {
   boxes[index]?.focus();
