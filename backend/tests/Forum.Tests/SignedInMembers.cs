@@ -23,6 +23,27 @@ internal sealed class SignedInMembers(ApiFactory factory, HttpClient client)
         return new Member(session.User.Id, account.Username, session.Token);
     }
 
+    /// <summary>
+    /// Signs in as one of the seeded accounts, which are already confirmed. The moderator only
+    /// exists through seeding: nothing in the API promotes a member, by design.
+    /// </summary>
+    public async Task<Member> SignInSeededAsync(string username, string emailAddress)
+    {
+        var account = new RegisterRequest
+        {
+            Username = username,
+            Email = emailAddress,
+            Password = "Password123!",
+        };
+
+        var session = await SignInAsync(account);
+
+        return new Member(session.User.Id, session.User.Username, session.Token);
+    }
+
+    /// <summary>The seeded moderator.</summary>
+    public Task<Member> ModeratorAsync() => SignInSeededAsync("mod", "mod@forum.local");
+
     /// <summary>Registers an account and confirms its address using the emailed link.</summary>
     public async Task<RegisterRequest> RegisterAndConfirmAsync()
     {

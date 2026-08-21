@@ -30,7 +30,9 @@ public sealed class BrowsingTests(ApiFactory factory)
     [Fact]
     public async Task Every_discussion_reports_its_author_and_counts()
     {
-        var page = await GetPageAsync("?pageSize=20");
+        // Oldest first for the same reason: the seeded conversations are the ones with replies
+        // and likes on them, and a test run adds newer discussions that have neither.
+        var page = await GetPageAsync("?pageSize=20&sort=CreatedAt&order=Ascending");
 
         page.Items.Should().OnlyContain(post => post.Author.Username.Length > 0);
         page.Items.Should().OnlyContain(post => post.LikeCount >= 0 && post.CommentCount >= 0);
@@ -132,7 +134,9 @@ public sealed class BrowsingTests(ApiFactory factory)
     [Fact]
     public async Task Replies_are_returned_oldest_first_for_one_discussion()
     {
-        var page = await GetPageAsync("?pageSize=20");
+        // Oldest first, so the seeded conversations are reached whatever other tests have added
+        // since: anything written during a test run is newer and would otherwise crowd them out.
+        var page = await GetPageAsync("?pageSize=20&sort=CreatedAt&order=Ascending");
         var discussion = page.Items.First(post => post.CommentCount > 1);
 
         var replies = await _client.GetFromJsonAsync<PagedResult<CommentDto>>(

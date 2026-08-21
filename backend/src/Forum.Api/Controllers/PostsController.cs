@@ -1,6 +1,7 @@
 using Forum.Application.Common.Models;
 using Forum.Application.Dtos;
 using Forum.Application.Queries;
+using Forum.Domain.Posts;
 using Forum.Api.Auth;
 using Forum.Application.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -101,6 +102,70 @@ public sealed class PostsController(PostService posts, CommentService comments) 
     public async Task<IActionResult> Unlike(Guid id, CancellationToken cancellationToken)
     {
         await posts.UnlikeAsync(id, User.GetRequiredUserId(), cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>Rewrites a discussion. Only its author may.</summary>
+    [HttpPut("{id:guid}")]
+    [Authorize]
+    [ProducesResponseType<PostDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PostDto>> Update(
+        Guid id,
+        CreatePostRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await posts.UpdateAsync(id, User.GetRequiredUserId(), request, cancellationToken));
+
+    /// <summary>Removes a discussion, and with it every reply, like and flag it carried.</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await posts.DeleteAsync(id, User.GetRequiredUserId(), cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>Marks a discussion as misleading or false.</summary>
+    [HttpPost("{id:guid}/tags")]
+    [Authorize(Policy = AuthenticationSetup.ModeratorPolicy)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Flag(
+        Guid id,
+        FlagPostRequest request,
+        CancellationToken cancellationToken)
+    {
+        await posts.FlagAsync(id, User.GetRequiredUserId(), request.Tag, cancellationToken);
+
+        return CreatedAtAction(nameof(GetById), new { id }, value: null);
+    }
+
+    /// <summary>Takes a flag off a discussion.</summary>
+    [HttpDelete("{id:guid}/tags/{tag}")]
+    [Authorize(Policy = AuthenticationSetup.ModeratorPolicy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Unflag(
+        Guid id,
+        ModerationTag tag,
+        CancellationToken cancellationToken)
+    {
+        await posts.UnflagAsync(id, tag, cancellationToken);
 
         return NoContent();
     }

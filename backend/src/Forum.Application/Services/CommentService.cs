@@ -3,6 +3,7 @@ using Forum.Application.Common.Interfaces;
 using Forum.Application.Common.Models;
 using Forum.Application.Dtos;
 using Forum.Application.Projections;
+using Forum.Domain.Comments;
 using Forum.Application.Queries;
 using Microsoft.EntityFrameworkCore;
 
@@ -70,4 +71,40 @@ public sealed class CommentService(IForumDbContext database, TimeProvider clock)
             .Select(CommentProjections.ToDto())
             .SingleAsync(cancellationToken);
     }
+
+    /// <summary>Rewrites a reply. Only its author may.</summary>
+    public async Task<CommentDto> UpdateAsync(
+        Guid commentId,
+        Guid actorId,
+        CreateCommentRequest request,
+        CancellationToken cancellationToken)
+    {
+        var comment = await FindAsync(commentId, cancellationToken);
+
+        comment.Update(actorId, request.Body, clock.GetUtcNow());
+
+        await database.SaveChangesAsync(cancellationToken);
+
+        return await database.Comments
+            .AsNoTracking()
+            .Where(candidate => candidate.Id == commentId)
+            .Select(CommentProjections.ToDto())
+            .SingleAsync(cancellationToken);
+    }
+
+    /// <summary>Removes a reply. Only its author may.</summary>
+    public async Task DeleteAsync(Guid commentId, Guid actorId, CancellationToken cancellationToken)
+    {
+        var comment = await FindAsync(commentId, cancellationToken);
+
+        comment.EnsureOwnedBy(actorId);
+
+        database.Comments.Remove(comment);
+        await database.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Comment> FindAsync(Guid commentId, CancellationToken cancellationToken)
+        => await database.Comments
+            .SingleOrDefaultAsync(candidate => candidate.Id == commentId, cancellationToken)
+            ?? throw NotFoundException.Reply(commentId);
 }
