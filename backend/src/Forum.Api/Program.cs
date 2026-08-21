@@ -21,6 +21,7 @@ builder.Services.Configure<JsonOptions>(options =>
     options.JsonSerializerOptions.TypeInfoResolverChain.Insert(0, ForumJsonContext.Default));
 
 builder.Services.AddProblemDetails();
+builder.Services.AddValidationProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddForumRateLimiting();
 builder.Services.AddOpenApi();

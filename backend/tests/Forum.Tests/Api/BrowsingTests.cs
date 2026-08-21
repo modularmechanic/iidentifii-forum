@@ -114,9 +114,11 @@ public sealed class BrowsingTests(ApiFactory factory)
         var response = await _client.GetAsync($"/api/v1/posts{queryString}");
 
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        response.Content.Headers.ContentType!.MediaType.Should().Be("application/problem+json");
 
         var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(TestJson.Options);
         problem!.Errors.Should().ContainKey(field);
+        problem.Extensions.Should().ContainKey("traceId");
     }
 
     [Fact]

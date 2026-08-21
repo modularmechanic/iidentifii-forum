@@ -26,5 +26,7 @@ namespace Forum.Api.Serialization;
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ValidationProblemDetails))]
 [JsonSerializable(typeof(IDictionary<string, object?>))]
+[JsonSerializable(typeof(Dictionary<string, string[]>))]
+[JsonSerializable(typeof(string[]))]
 [JsonSerializable(typeof(JsonElement))]
 public sealed partial class ForumJsonContext : JsonSerializerContext;
