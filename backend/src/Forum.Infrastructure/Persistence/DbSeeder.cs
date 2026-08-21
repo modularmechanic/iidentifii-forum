@@ -1,3 +1,4 @@
+using Forum.Application.Common.Exceptions;
 using Forum.Domain.Posts;
 using Forum.Domain.Users;
 using Microsoft.AspNetCore.Identity;
@@ -38,7 +39,17 @@ public sealed class DbSeeder(
         var posts = CreatePosts(users, now);
         database.Posts.AddRange(posts);
 
-        await database.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await database.SaveChangesAsync(cancellationToken);
+        }
+        catch (ConflictException)
+        {
+            // Two instances starting together can both find the table empty. The unique index on
+            // usernames decides which one wins; the other simply has nothing left to do.
+            logger.LogInformation("Another instance seeded the database first; nothing to do.");
+            return;
+        }
 
         logger.LogInformation(
             "Seeded {UserCount} users and {PostCount} discussions.",
