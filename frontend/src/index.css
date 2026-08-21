@@ -1,0 +1,41 @@
+@import 'tailwindcss';
+
+/* Design tokens. A colour is never hard-coded in a component. */
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-canvas: #ffffff;
+  --color-surface: #ffffff;
+  --color-subtle: #f4f4f5;
+  --color-ink: #111111;
+  --color-muted: #6b6b70;
+  --color-line: #e4e4e7;
+  --color-accent: #0a6ebd;
+  --color-accent-soft: #eef5fb;
+  --color-danger: #b91c1c;
+  --color-danger-soft: #fdf1f1;
+  --color-success: #15803d;
+  --color-success-soft: #f0faf3;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #0a0a0a;
+    --color-surface: #0a0a0a;
+    --color-subtle: #161618;
+    --color-ink: #ededed;
+    --color-muted: #8f8f96;
+    --color-line: #27272a;
+    --color-accent: #5aa9e6;
+    --color-accent-soft: #10212f;
+    --color-danger: #f87171;
+    --color-danger-soft: #2a1414;
+    --color-success: #4ade80;
+    --color-success-soft: #0f2417;
+  }
+}
+
+body {
+  @apply bg-canvas text-ink font-sans antialiased;
+}

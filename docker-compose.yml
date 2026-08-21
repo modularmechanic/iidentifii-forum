@@ -1,0 +1,37 @@
+name: iidentifii-forum
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: forum
+      POSTGRES_USER: forum
+      POSTGRES_PASSWORD: forum
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forum -d forum"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Captures every email the API sends. Web interface and REST API on 8025.
+  mailpit:
+    image: axllent/mailpit:v1.28
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+    environment:
+      MP_MAX_MESSAGES: 500
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:
