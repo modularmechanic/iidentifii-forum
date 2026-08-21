@@ -1,0 +1,33 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+coverage/
+
+# Editors
+.vs/
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Working notes (not part of the submission)
+plans/
+.omc/
