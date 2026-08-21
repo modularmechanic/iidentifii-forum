@@ -1,10 +1,13 @@
 using Forum.Application.Common.Exceptions;
 using Forum.Application.Common.Interfaces;
 using Forum.Application.Common.Models;
+using Forum.Application.Dtos;
+using Forum.Application.Projections;
+using Forum.Application.Queries;
 using Forum.Domain.Posts;
 using Microsoft.EntityFrameworkCore;
 
-namespace Forum.Application.Posts;
+namespace Forum.Application.Services;
 
 /// <summary>Reads and writes discussions. Rules that must always hold live on the entity.</summary>
 public sealed class PostService(IForumDbContext database)

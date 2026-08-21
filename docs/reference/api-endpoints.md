@@ -86,6 +86,40 @@ Returns a page of replies, oldest first.
 | 400 | Paging outside its bounds |
 | 404 | No discussion has that identifier |
 
+## Accounts
+
+### `POST /auth/register`
+
+`{ "username": "...", "email": "...", "password": "..." }`
+
+| Field | Rule |
+| --- | --- |
+| `username` | 3 to 32 characters, letters, numbers and underscores; unique regardless of case |
+| `email` | A valid address, unique regardless of case |
+| `password` | 8 to 128 characters |
+
+| Status | When |
+| --- | --- |
+| 201 | The account was created and a confirmation link sent |
+| 400 | A field breaks one of the rules above |
+| 409 | The username or address is already registered |
+
+### `POST /auth/verify-email`
+
+`{ "token": "..." }`, taken from the emailed link.
+
+| Status | When |
+| --- | --- |
+| 200 | The address is confirmed |
+| 400 | The token is unknown, expired, or already used |
+
+### `POST /auth/resend-verification`
+
+`{ "email": "..." }`
+
+Always returns 202, whether or not the address belongs to an account. A cooldown is applied
+silently. Neither the status nor the body reveals who is registered.
+
 ## Service
 
 ### `GET /health`

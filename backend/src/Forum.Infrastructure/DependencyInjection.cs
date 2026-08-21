@@ -1,5 +1,6 @@
 using Forum.Application.Common.Interfaces;
 using Forum.Domain.Users;
+using Forum.Infrastructure.Email;
 using Forum.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,21 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<DbSeeder>();
+
+        services.AddOptions<EmailOptions>()
+            .Bind(configuration.GetSection(EmailOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        // Without a mail server configured, messages go to the log so nothing is lost.
+        if (configuration.GetValue($"{EmailOptions.SectionName}:Enabled", defaultValue: true))
+        {
+            services.AddScoped<IEmailSender, SmtpEmailSender>();
+        }
+        else
+        {
+            services.AddScoped<IEmailSender, LogEmailSender>();
+        }
 
         return services;
     }

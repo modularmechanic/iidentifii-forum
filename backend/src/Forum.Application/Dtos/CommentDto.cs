@@ -1,6 +1,4 @@
-using Forum.Application.Posts;
-
-namespace Forum.Application.Comments;
+namespace Forum.Application.Dtos;
 
 /// <summary>A reply as the reader sees it.</summary>
 public sealed record CommentDto(

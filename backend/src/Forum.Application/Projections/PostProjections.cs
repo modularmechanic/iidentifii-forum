@@ -1,7 +1,8 @@
-using System.Linq.Expressions;
+using Forum.Application.Dtos;
 using Forum.Domain.Posts;
+using System.Linq.Expressions;
 
-namespace Forum.Application.Posts;
+namespace Forum.Application.Projections;
 
 /// <summary>
 /// The single definition of how a discussion becomes a payload. Both the list and the detail

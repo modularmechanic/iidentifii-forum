@@ -60,6 +60,7 @@ public sealed class GlobalExceptionHandler(
     private static (int Status, string Title, string Detail) Describe(Exception exception) => exception switch
     {
         NotFoundException => (StatusCodes.Status404NotFound, "Not found.", exception.Message),
+        InvalidTokenException => (StatusCodes.Status400BadRequest, "Invalid token.", exception.Message),
         ConflictException => (StatusCodes.Status409Conflict, "Already exists.", exception.Message),
         DomainException { Error: DomainError.Forbidden } =>
             (StatusCodes.Status403Forbidden, "Not allowed.", exception.Message),

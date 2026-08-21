@@ -17,7 +17,7 @@ namespace Forum.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.4")
+                .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
@@ -207,6 +207,10 @@ namespace Forum.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("UserId", "Purpose");
+
+                    b.HasIndex(new[] { "UserId", "Purpose" }, "IX_UserTokens_Outstanding")
+                        .IsUnique()
+                        .HasFilter("\"ConsumedAt\" IS NULL");
 
                     b.ToTable("UserTokens");
                 });

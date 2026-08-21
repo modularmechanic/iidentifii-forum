@@ -1,7 +1,8 @@
-using System.Globalization;
-using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
+using System.Globalization;
+using System.Threading.RateLimiting;
 
 namespace Forum.Api.RateLimiting;
 
@@ -11,11 +12,18 @@ public static class RateLimitPolicies
     /// <summary>Applied to sign-in, registration and anything else that sends email.</summary>
     public const string Authentication = "authentication";
 
-    private const int GlobalPermitsPerMinute = 120;
-    private const int AuthenticationPermitsPerMinute = 10;
-
-    public static IServiceCollection AddForumRateLimiting(this IServiceCollection services)
+    public static IServiceCollection AddForumRateLimiting(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        services.AddOptions<RateLimitOptions>()
+            .Bind(configuration.GetSection(RateLimitOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        var limits = configuration.GetSection(RateLimitOptions.SectionName).Get<RateLimitOptions>()
+            ?? new RateLimitOptions();
+
         services.AddRateLimiter(options =>
         {
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
@@ -23,7 +31,7 @@ public static class RateLimitPolicies
                     GetClientKey(context),
                     _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = GlobalPermitsPerMinute,
+                        PermitLimit = limits.GlobalPermitsPerMinute,
                         Window = TimeSpan.FromMinutes(1),
                     }));
 
@@ -32,7 +40,7 @@ public static class RateLimitPolicies
                     GetClientKey(context),
                     _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = AuthenticationPermitsPerMinute,
+                        PermitLimit = limits.AuthenticationPermitsPerMinute,
                         Window = TimeSpan.FromMinutes(1),
                     }));
 

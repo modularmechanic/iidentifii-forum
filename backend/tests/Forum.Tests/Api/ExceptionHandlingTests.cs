@@ -1,13 +1,13 @@
-using System.Diagnostics;
-using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
 using Forum.Api.Errors;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Diagnostics;
+using System.Net.Http.Json;
+using System.Net;
 using Xunit;
 
 namespace Forum.Tests.Api;

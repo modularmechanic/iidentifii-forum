@@ -34,6 +34,14 @@ function SiteHeader() {
           iiDENTIFii Forum
         </Link>
         <span className="text-sm text-muted">Integration community</span>
+        <nav className="ml-auto flex items-center gap-2">
+          <Link className="px-3 py-1.5 text-sm text-muted hover:text-ink" to={Paths.Login}>
+            Log in
+          </Link>
+          <Link className="rounded-sm border border-line px-3 py-1.5 text-sm" to={Paths.Register}>
+            Join the forum
+          </Link>
+        </nav>
       </div>
     </header>
   );

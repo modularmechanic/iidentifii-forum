@@ -1,10 +1,11 @@
 using Forum.Application.Common.Exceptions;
 using Forum.Application.Common.Interfaces;
 using Forum.Application.Common.Models;
-using Forum.Application.Posts;
+using Forum.Application.Dtos;
+using Forum.Application.Queries;
 using Microsoft.EntityFrameworkCore;
 
-namespace Forum.Application.Comments;
+namespace Forum.Application.Services;
 
 /// <summary>Reads and writes replies to a discussion.</summary>
 public sealed class CommentService(IForumDbContext database)

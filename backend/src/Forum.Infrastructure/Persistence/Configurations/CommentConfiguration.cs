@@ -1,7 +1,7 @@
 using Forum.Domain.Comments;
 using Forum.Domain.Posts;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore;
 
 namespace Forum.Infrastructure.Persistence.Configurations;
 

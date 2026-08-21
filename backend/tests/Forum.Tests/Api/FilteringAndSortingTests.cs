@@ -1,10 +1,9 @@
-using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
-using Forum.Application.Comments;
 using Forum.Application.Common.Models;
-using Forum.Application.Posts;
+using Forum.Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
+using System.Net;
 using Xunit;
 
 namespace Forum.Tests.Api;

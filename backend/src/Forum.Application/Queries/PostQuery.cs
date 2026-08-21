@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
 using Forum.Application.Common.Models;
 using Forum.Domain.Posts;
+using System.ComponentModel.DataAnnotations;
 
-namespace Forum.Application.Posts;
+namespace Forum.Application.Queries;
 
 /// <summary>
 /// Which discussions to return, and in what order. Bounds are declared here so an unreasonable
