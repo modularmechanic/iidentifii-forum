@@ -20,8 +20,21 @@ const PAGE_SIZE = 10;
 function PostsContainer() {
   const { criteria, update, clear, hasFilters } = useListCriteria();
 
-  // Filters that are already applied are shown, so a reader can see what narrowed the list.
   const [isFiltering, setIsFiltering] = useState(hasFilters);
+  const [hadFilters, setHadFilters] = useState(hasFilters);
+
+  // Criteria can arrive without the switch being touched: a shared link, the back button, a
+  // change of address. The panel opens when they do, because a narrowed list behind a hidden
+  // control is how people lose track of what they are looking at. Only the moment filters
+  // appear opens it: filters going away, whether by Clear or by the switch, leaves the panel
+  // as the reader left it.
+  if (hasFilters !== hadFilters) {
+    setHadFilters(hasFilters);
+
+    if (hasFilters) {
+      setIsFiltering(true);
+    }
+  }
 
   const query = useQuery({
     queryKey: ['posts', { ...criteria, pageSize: PAGE_SIZE }],

@@ -122,4 +122,14 @@ describe('useListCriteria', () => {
     expect(result.current.search).toBe('');
     expect(result.current.hasFilters).toBe(false);
   });
+
+  it('keeps the chosen ordering when the filters are cleared', () => {
+    const { result } = renderCriteria('/?sort=LikeCount&order=Ascending&author=carol');
+
+    act(() => result.current.clear());
+
+    expect(result.current.criteria).toMatchObject({ sort: 'LikeCount', order: 'Ascending' });
+    expect(result.current.criteria.author).toBeUndefined();
+    expect(result.current.criteria.page).toBe(1);
+  });
 });

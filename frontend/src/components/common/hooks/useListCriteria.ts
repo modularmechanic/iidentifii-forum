@@ -88,7 +88,15 @@ export function useListCriteria() {
     [criteria, setSearchParams],
   );
 
-  const clear = useCallback(() => setSearchParams(new URLSearchParams()), [setSearchParams]);
+  /**
+   * Empties the filters and returns to the first page. The chosen ordering is not a filter and
+   * survives, so a reader who sorted by likes and then narrowed the list keeps that order when
+   * the narrowing goes away.
+   */
+  const clear = useCallback(
+    () => update({ from: undefined, to: undefined, author: undefined, tag: undefined }),
+    [update],
+  );
 
   const hasFilters = Boolean(criteria.from || criteria.to || criteria.author || criteria.tag);
 

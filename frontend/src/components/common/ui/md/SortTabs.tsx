@@ -2,10 +2,12 @@ import { PostSorts, SortOrders, type PostSort, type SortOrder } from '@src/domai
 
 /***** Constants *****/
 
+/** Every ordering the API serves, so no address can put the list in an order no button names. */
 const OPTIONS = [
   { label: 'Latest', sort: PostSorts.CreatedAt, order: SortOrders.Descending },
-  { label: 'Top', sort: PostSorts.LikeCount, order: SortOrders.Descending },
   { label: 'Oldest', sort: PostSorts.CreatedAt, order: SortOrders.Ascending },
+  { label: 'Top', sort: PostSorts.LikeCount, order: SortOrders.Descending },
+  { label: 'Least liked', sort: PostSorts.LikeCount, order: SortOrders.Ascending },
 ] as const;
 
 /***** Types *****/
@@ -19,9 +21,8 @@ interface IProps {
 /***** Components *****/
 
 /**
- * Default component: the three orderings people actually want, named rather than described.
- * A group of buttons rather than tabs, because choosing one reorders the list in place instead
- * of revealing a different panel.
+ * Default component: the orderings named rather than described. A group of buttons rather than
+ * tabs, because choosing one reorders the list in place instead of revealing a different panel.
  */
 function SortTabs(props: IProps) {
   const { sort, order, onChange } = props;
