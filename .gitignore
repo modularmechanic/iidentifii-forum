@@ -34,3 +34,8 @@ plans/
 
 # TypeScript build metadata
 *.tsbuildinfo
+
+# Screenshot tooling scratch output
+.playwright-mcp/
+*.png
+!docs/screenshots/*.png

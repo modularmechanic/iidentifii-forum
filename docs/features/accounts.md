@@ -12,6 +12,20 @@ unusable account.
 Confirmation is a link, emailed once and good for an hour. Asking for another retires the previous
 one, so only the newest link works.
 
+## What it looks like
+
+Creating an account:
+
+![The registration form, filled in](../screenshots/register.png)
+
+After it is submitted, the reader is told where to look rather than left guessing:
+
+![The check your inbox page, offering to send the link again](../screenshots/check-inbox.png)
+
+Following the emailed link confirms the address:
+
+![The confirmation page, saying the account is ready](../screenshots/email-confirmed.png)
+
 ## Endpoints
 
 | Method | Path | Returns |
