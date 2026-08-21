@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Forum.Api.Serialization;
 
 /// <summary>
-/// Compile-time serialiser metadata for every payload the API returns. Registering this
-/// resolver keeps request and response handling free of runtime reflection.
+/// Serialiser metadata for every payload the API accepts or returns, produced by the
+/// System.Text.Json source generator. Registering this resolver keeps request and response
+/// handling free of runtime reflection, which is why <c>JsonSerializerIsReflectionEnabledByDefault</c>
+/// can stay off.
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

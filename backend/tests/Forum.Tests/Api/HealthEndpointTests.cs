@@ -23,8 +23,8 @@ public sealed class HealthEndpointTests(ApiFactory factory) : IClassFixture<ApiF
     }
 
     /// <summary>
-    /// Serialisation runs without reflection, so framework error payloads must be covered by the
-    /// generated context as well. A missing route is the cheapest way to produce one.
+    /// Reflection-free serialisation means framework error payloads must be covered by the
+    /// serialiser context too. A missing route is the cheapest way to produce one.
     /// </summary>
     [Fact]
     public async Task Unknown_route_returns_problem_details()

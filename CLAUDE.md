@@ -11,7 +11,7 @@ Instructions for automated contributors working in this repository. Read `GUIDEL
 
 ## Before opening a pull request
 
-1. `dotnet test backend/Forum.sln` passes.
+1. `dotnet test backend/Forum.slnx` passes.
 2. `npm run lint && npm run test -- --run && npm run build` passes in `frontend/`.
 3. Run the local review pass and fix what it finds.
 4. Check nothing secret is staged: keys, connection strings, tokens.

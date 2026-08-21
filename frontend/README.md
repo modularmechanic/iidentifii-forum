@@ -1,32 +1,20 @@
-# React + TypeScript + Vite
+# Web client
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Who this is for: developers working on the forum interface.
+What you'll get: how to run, check and test this application on its own.
 
-Currently, two official plugins are available:
+The client talks to the API at `/api/v1` and never to the database. In development the Vite server
+proxies that path (and `/health`) to `http://localhost:5000`, so the browser only ever sees one
+origin. Start the API first, otherwise the interface loads and reports that the API is unreachable.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Commands
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install       # once
+npm run dev       # http://localhost:5173
+npm run test:run  # component tests
+npm run lint      # static analysis
+npm run build     # type-check and bundle
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Conventions for this codebase are in [`../GUIDELINES.md`](../GUIDELINES.md).

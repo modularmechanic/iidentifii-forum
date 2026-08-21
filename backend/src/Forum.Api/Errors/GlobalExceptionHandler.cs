@@ -17,7 +17,7 @@ public sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var traceId = httpContext.Features.Get<IHttpActivityFeature>()?.Activity.Id
+        var traceId = httpContext.Features.Get<IHttpActivityFeature>()?.Activity?.Id
             ?? httpContext.TraceIdentifier;
 
         logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}", traceId);

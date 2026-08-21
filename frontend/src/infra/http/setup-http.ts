@@ -40,10 +40,12 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
 
 /** Performs a request against a path outside the versioned API, such as the health probe. */
 export async function fetchRootJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    ...init,
-    headers: { Accept: 'application/json', ...init?.headers },
-  });
+  const headers = new Headers(init?.headers);
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json');
+  }
+
+  const response = await fetch(path, { ...init, headers });
 
   if (!response.ok) {
     throw await _toHttpError(response);

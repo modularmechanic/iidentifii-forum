@@ -41,7 +41,7 @@ npm run dev --prefix frontend                  # web on http://localhost:5173
 ## Test it
 
 ```bash
-dotnet test backend/Forum.sln     # unit and integration tests
+dotnet test backend/Forum.slnx     # unit and integration tests
 npm run test:run --prefix frontend # component tests
 npm run lint --prefix frontend     # static analysis
 ```

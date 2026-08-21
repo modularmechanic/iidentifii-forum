@@ -20,7 +20,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  @theme {
+  :root {
     --color-canvas: #0a0a0a;
     --color-surface: #0a0a0a;
     --color-subtle: #161618;

@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// Payload serialisation is generated at compile time; see ForumJsonContext.
+// Payloads resolve through the source-generated context; see ForumJsonContext.
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, ForumJsonContext.Default));
 builder.Services.Configure<JsonOptions>(options =>

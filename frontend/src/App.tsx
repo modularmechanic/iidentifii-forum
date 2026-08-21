@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Route, Routes } from 'react-router';
+import { BrowserRouter, Link, Route, Routes } from 'react-router';
 import AppShell from '@src/components/common/ui/lg/AppShell';
 import Home from '@src/components/pages/Home/Home';
 import Paths from '@src/domains/common/constants/Paths';
@@ -33,7 +33,13 @@ function NotFound() {
   return (
     <section className="py-12 text-center">
       <h1 className="text-lg font-semibold">Page not found</h1>
-      <p className="mt-1 text-sm text-muted">Check the address, or head back to the discussions.</p>
+      <p className="mt-1 text-sm text-muted">
+        Check the address, or{' '}
+        <Link className="text-accent underline" to={Paths.Home}>
+          head back to the discussions
+        </Link>
+        .
+      </p>
     </section>
   );
 }
