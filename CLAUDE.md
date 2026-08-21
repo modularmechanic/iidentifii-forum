@@ -4,7 +4,10 @@ Instructions for automated contributors working in this repository. Read `GUIDEL
 
 ## Ground rules
 
-- Never commit to `main`. Every change reaches `main` through a pull request.
+- Never commit to `main`. Every change reaches `main` through a pull request, and the
+  repository refuses a direct push. Continuous integration runs both suites on every pull
+  request; the `Verify` check aggregates them and must pass before the merge button unlocks.
+  A red branch cannot reach `main` even if someone tries.
 - One issue per slice, one branch per issue, named `feature/clem/<issue>-<feature>-<short-description>`.
 - A slice is vertical: backend, frontend, tests and documentation land together, and the result runs.
 - Do not mention automated tooling in commit messages, pull requests or code comments.

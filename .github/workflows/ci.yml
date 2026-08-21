@@ -76,3 +76,23 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    # Runs even when a suite fails, so the gate reports a failure rather than being skipped:
+    # a skipped check satisfies a protection rule, a failed one does not.
+    if: always()
+    steps:
+      - name: Require both suites to have passed
+        env:
+          BACKEND: ${{ needs.backend.result }}
+          FRONTEND: ${{ needs.frontend.result }}
+        run: |
+          echo "Backend: $BACKEND"
+          echo "Frontend: $FRONTEND"
+          if [ "$BACKEND" != "success" ] || [ "$FRONTEND" != "success" ]; then
+            echo "::error::main takes green branches only."
+            exit 1
+          fi
