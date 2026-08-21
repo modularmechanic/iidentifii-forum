@@ -1,0 +1,14 @@
+# The forum is public to read, so crawlers are welcome on the discussions themselves.
+User-agent: *
+Allow: /$
+Allow: /discussions
+
+# Nothing behind these is useful to index, and some of it carries one-time tokens.
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /verify-email
+Disallow: /reset-password
+Disallow: /forgot-password
+
+Sitemap: http://localhost:5173/sitemap.xml

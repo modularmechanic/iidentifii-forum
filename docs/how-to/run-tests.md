@@ -28,6 +28,15 @@ npm run build --prefix frontend      # type check and bundle
 Component tests render components with the same providers the application uses, and replace the
 service layer rather than the network, so a test failing means the component changed.
 
+## Testing the API by hand
+
+Import `docs/postman/` and run the collection. It creates an account with a generated name, reads
+the confirmation email out of Mailpit, follows the link, and checks that the same link is refused
+the second time, so it can be run repeatedly without editing anything.
+
+Development raises the request limits so the collection is not throttled by its own traffic. The
+production values, and the 429 they produce, are covered by `RateLimitTests`.
+
 ## In continuous integration
 
 Every pull request runs both suites. The backend job has Docker available, so the integration

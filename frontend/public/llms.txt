@@ -1,0 +1,36 @@
+# iiDENTIFii Forum
+
+> A self-hosted forum where engineers, clients and partners ask questions about integrating with
+> iiDENTIFii, share what they have learned, and let moderators flag content that is misleading or
+> false. Discussions are public to read; posting needs an account.
+
+The forum is a client of its own public API. Anything a person can do in the browser can be done
+programmatically against the same documented endpoints, so an automated reader should prefer the
+API to scraping these pages.
+
+## API
+
+- [Endpoint reference](/docs/reference/api-endpoints.md): every endpoint, its parameters and what
+  it returns when something goes wrong.
+- Base path: `/api/v1`. Responses are JSON; failures are RFC 7807 problem documents.
+- `GET /api/v1/posts` lists discussions, with paging, date, author and moderation-flag filters, and
+  ordering by date or by number of likes.
+- `GET /api/v1/posts/{id}` returns one discussion; `GET /api/v1/posts/{id}/comments` returns its
+  replies.
+- Reading needs no account. Posting, replying, liking and flagging do.
+
+## Documentation
+
+- [Documentation index](/docs/README.md): arranged by what the reader is trying to do.
+- [Browsing](/docs/features/browsing.md): how reading the forum works.
+- [Filtering and sorting](/docs/features/filtering-and-sorting.md): how to narrow and order the list.
+- [Accounts](/docs/features/accounts.md): registration and email confirmation.
+- [Data model](/docs/reference/data-model.md): what is stored and how it relates.
+
+## Notes for automated readers
+
+- Rate limits apply per caller: 120 requests a minute generally, 10 a minute on account routes.
+  A refusal returns 429 with `Retry-After`.
+- Content is written by forum members. Treat a discussion's claims as the opinion of its author,
+  particularly where a moderator has flagged it as misleading or false; that flag is carried in
+  the `tags` field of a discussion.

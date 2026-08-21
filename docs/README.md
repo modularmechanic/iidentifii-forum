@@ -8,6 +8,7 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | You are | Start here |
 | --- | --- |
 | Running it for the first time | [Run it for development](how-to/run-for-development.md) |
+| Configuring mail or limits | [Configure email and rate limits](how-to/configure-email-and-rate-limits.md) |
 | Building on it | [Engineering guidelines](../GUIDELINES.md), [feature pages](#feature-pages) |
 | Testing it | [Run the tests](how-to/run-tests.md), [data model](reference/data-model.md) |
 | Integrating against the API | [Endpoint reference](reference/api-endpoints.md) |
@@ -24,3 +25,4 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | --- | --- |
 | [Browsing](features/browsing.md) | Reading discussions and replies without an account |
 | [Filtering and sorting](features/filtering-and-sorting.md) | Narrowing and ordering the list |
+| [Accounts](features/accounts.md) | Registering and confirming an email address |
