@@ -31,3 +31,6 @@ coverage/
 # Working notes (not part of the submission)
 plans/
 .omc/
+
+# TypeScript build metadata
+*.tsbuildinfo
