@@ -4,9 +4,14 @@ import AppShell from '@src/components/common/ui/lg/AppShell';
 import Home from '@src/components/pages/Home/Home';
 import ViewDiscussion from '@src/components/pages/Discussions/View/ViewDiscussion';
 import CheckInbox from '@src/components/pages/Auth/CheckInbox/CheckInbox';
+import ForgotPassword from '@src/components/pages/Auth/ForgotPassword/ForgotPassword';
+import Login from '@src/components/pages/Auth/Login/Login';
+import LoginCode from '@src/components/pages/Auth/LoginCode/LoginCode';
 import Register from '@src/components/pages/Auth/Register/Register';
+import ResetPassword from '@src/components/pages/Auth/ResetPassword/ResetPassword';
 import VerifyEmail from '@src/components/pages/Auth/VerifyEmail/VerifyEmail';
 import Paths from '@src/domains/common/constants/Paths';
+import AuthProvider from '@src/infra/auth/AuthProvider';
 
 /***** Constants *****/
 
@@ -21,16 +26,22 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppShell>
-          <Routes>
-            <Route element={<Home />} path={Paths.Home} />
-            <Route element={<ViewDiscussion />} path={Paths.DiscussionPattern} />
-            <Route element={<Register />} path={Paths.Register} />
-            <Route element={<CheckInbox />} path={Paths.CheckInbox} />
-            <Route element={<VerifyEmail />} path={Paths.VerifyEmail} />
-            <Route element={<NotFound />} path="*" />
-          </Routes>
-        </AppShell>
+        <AuthProvider>
+          <AppShell>
+            <Routes>
+              <Route element={<Home />} path={Paths.Home} />
+              <Route element={<ViewDiscussion />} path={Paths.DiscussionPattern} />
+              <Route element={<Register />} path={Paths.Register} />
+              <Route element={<CheckInbox />} path={Paths.CheckInbox} />
+              <Route element={<VerifyEmail />} path={Paths.VerifyEmail} />
+              <Route element={<Login />} path={Paths.Login} />
+              <Route element={<LoginCode />} path={Paths.LoginCode} />
+              <Route element={<ForgotPassword />} path={Paths.ForgotPassword} />
+              <Route element={<ResetPassword />} path={Paths.ResetPassword} />
+              <Route element={<NotFound />} path="*" />
+            </Routes>
+          </AppShell>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

@@ -7,6 +7,19 @@
 
 const API_BASE = '/api/v1';
 
+/***** State *****/
+
+/**
+ * The session token, held here rather than passed to every call. One place sets it, one place
+ * reads it, and no component has to remember to attach it.
+ */
+let authorizationHeader: string | null = null;
+
+/** Called when somebody signs in or out. */
+export function setAuthorizationHeader(token: string | null): void {
+  authorizationHeader = token === null ? null : `Bearer ${token}`;
+}
+
 /***** Types *****/
 
 interface IProblemDetails {
@@ -43,6 +56,10 @@ export async function fetchRootJson<T>(path: string, init?: RequestInit): Promis
   const headers = new Headers(init?.headers);
   if (!headers.has('Accept')) {
     headers.set('Accept', 'application/json');
+  }
+
+  if (authorizationHeader !== null && !headers.has('Authorization')) {
+    headers.set('Authorization', authorizationHeader);
   }
 
   const response = await fetch(path, { ...init, headers });

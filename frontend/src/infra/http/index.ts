@@ -1,1 +1,1 @@
-export { fetchJson, fetchRootJson, HttpError } from './setup-http';
+export { fetchJson, fetchRootJson, setAuthorizationHeader, HttpError } from './setup-http';

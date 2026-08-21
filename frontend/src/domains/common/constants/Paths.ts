@@ -8,6 +8,9 @@ const Paths = {
   checkInbox: (email: string) => `/register/check-inbox?email=${encodeURIComponent(email)}`,
   VerifyEmail: '/verify-email',
   Login: '/login',
+  LoginCode: '/login/code',
+  ForgotPassword: '/forgot-password',
+  ResetPassword: '/reset-password',
 } as const;
 
 export default Paths;

@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router';
+import AuthProvider from '@src/infra/auth/AuthProvider';
 import { render } from '@testing-library/react';
 
 /**
@@ -15,7 +16,9 @@ export function renderWithProviders(ui: ReactElement, initialPath = '/') {
   function Wrapper(props: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={[initialPath]}>{props.children}</MemoryRouter>
+        <MemoryRouter initialEntries={[initialPath]}>
+          <AuthProvider>{props.children}</AuthProvider>
+        </MemoryRouter>
       </QueryClientProvider>
     );
   }

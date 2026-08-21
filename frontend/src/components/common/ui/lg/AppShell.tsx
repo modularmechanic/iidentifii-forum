@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import Avatar from '@src/components/common/ui/sm/Avatar';
 import Paths from '@src/domains/common/constants/Paths';
+import UserOps from '@src/domains/users/UserOps';
+import { useAuth } from '@src/infra/auth/useAuth';
 
 /***** Types *****/
 
@@ -22,7 +25,7 @@ function AppShell(props: IProps) {
   );
 }
 
-/** The masthead, holding branding and the account controls. */
+/** The masthead, holding branding and whichever account controls apply. */
 function SiteHeader() {
   return (
     <header className="border-b border-line">
@@ -33,17 +36,53 @@ function SiteHeader() {
           </span>
           iiDENTIFii Forum
         </Link>
-        <span className="text-sm text-muted">Integration community</span>
-        <nav className="ml-auto flex items-center gap-2">
-          <Link className="px-3 py-1.5 text-sm text-muted hover:text-ink" to={Paths.Login}>
-            Log in
-          </Link>
-          <Link className="rounded-sm border border-line px-3 py-1.5 text-sm" to={Paths.Register}>
-            Join the forum
-          </Link>
-        </nav>
+        <span className="hidden text-sm text-muted sm:inline">Integration community</span>
+        <AccountControls />
       </div>
     </header>
+  );
+}
+
+/** Who is signed in, or the way to become somebody. */
+function AccountControls() {
+  const { user, isSignedIn, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  if (!isSignedIn || user === null) {
+    return (
+      <nav className="ml-auto flex items-center gap-2">
+        <Link className="px-3 py-1.5 text-sm text-muted hover:text-ink" to={Paths.Login}>
+          Log in
+        </Link>
+        <Link className="rounded-sm border border-line px-3 py-1.5 text-sm" to={Paths.Register}>
+          Join the forum
+        </Link>
+      </nav>
+    );
+  }
+
+  return (
+    <nav className="ml-auto flex items-center gap-3">
+      <span className="flex items-center gap-2 text-sm">
+        <Avatar username={user.username} />
+        {user.username}
+        {UserOps.isModerator(user) && (
+          <span className="font-mono text-[10px] tracking-wide text-accent uppercase">
+            moderator
+          </span>
+        )}
+      </span>
+      <button
+        className="px-3 py-1.5 text-sm text-muted hover:text-ink"
+        onClick={() => {
+          signOut();
+          navigate(Paths.Home);
+        }}
+        type="button"
+      >
+        Log out
+      </button>
+    </nav>
   );
 }
 
