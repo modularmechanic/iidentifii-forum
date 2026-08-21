@@ -202,6 +202,44 @@ public sealed class SignInTests(ApiFactory factory)
         session!.User.Role.Should().Be(UserRole.Moderator);
     }
 
+    [Fact]
+    public async Task Two_sign_ins_arriving_together_are_both_answered()
+    {
+        var account = await RegisterAndConfirmAsync();
+
+        // Only one unspent token may exist per account, so these race in the database. Somebody
+        // signing in from two tabs has done nothing wrong and must not be shown a conflict.
+        var responses = await Task.WhenAll(
+            LoginAsync(account.Username, account.Password),
+            LoginAsync(account.Username, account.Password));
+
+        responses.Should().OnlyContain(
+            response => response.StatusCode == HttpStatusCode.OK,
+            "a race between two of your own sign-ins is not the caller's problem");
+    }
+
+    [Fact]
+    public async Task Only_the_newest_code_works_when_two_are_asked_for()
+    {
+        var account = await RegisterAndConfirmAsync();
+
+        var first = await BeginSignInAsync(account);
+        var firstCode = CodeFor(account.Email);
+
+        var second = await BeginSignInAsync(account);
+        var secondCode = CodeFor(account.Email);
+
+        firstCode.Should().NotBe(secondCode, "asking again issues a new code");
+
+        // Asking for a second code retires the first, so a code left in an older message cannot
+        // be used afterwards. This is the point of retiring rather than accumulating.
+        (await VerifyCodeAsync(first.ChallengeId, firstCode)).StatusCode
+            .Should().Be(HttpStatusCode.Unauthorized);
+
+        (await VerifyCodeAsync(second.ChallengeId, secondCode)).StatusCode
+            .Should().Be(HttpStatusCode.OK);
+    }
+
     private string CodeFor(string emailAddress)
     {
         var body = factory.Emails.LastTo(emailAddress)?.PlainTextBody
