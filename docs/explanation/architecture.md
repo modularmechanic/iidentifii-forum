@@ -38,12 +38,16 @@ no CORS policy to get wrong.
 Dependencies point inwards, and the compiler enforces it: a project cannot reference one that
 would point outwards, because the reference is not there.
 
-| Project | References | Holds |
+| Project | Knows about | Holds |
 | --- | --- | --- |
 | `Forum.Domain` | nothing | Entities, and the rules that must always hold |
 | `Forum.Application` | Domain | Services, DTOs, and the interfaces the outer layers implement |
 | `Forum.Infrastructure` | Application, Domain | Entity Framework, email, token signing |
 | `Forum.Api` | all of the above | Controllers, pipeline, configuration |
+
+Each project declares only the next one inward — `Forum.Api` references `Forum.Infrastructure` and
+nothing else — and reaches the rest through it. So the second column is what a project can see, not
+what its `.csproj` lists.
 
 A request arrives, and:
 
