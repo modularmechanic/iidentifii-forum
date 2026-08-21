@@ -22,9 +22,9 @@ What you'll get: the settings that decide where mail goes and how hard the API c
 
 | Setting | Meaning |
 | --- | --- |
-| `Enabled` | `false` writes messages to the log instead of sending them, link included |
+| `Enabled` | `false` drops messages instead of sending them, and logs nothing about them |
 | `Host`, `Port` | Where to hand mail over. Locally this is Mailpit on 1025 |
-| `Username`, `Password` | Leave empty for a local mail catcher, which wants no credentials |
+| `Username`, `Password` | Give both or neither; a local mail catcher wants neither |
 | `UseStartTls` | Turn on for a real mail service |
 
 Locally, everything the forum sends is readable at http://localhost:8025.
@@ -46,6 +46,10 @@ Locally, everything the forum sends is readable at http://localhost:8025.
 token. It is required, must be at least 32 characters, and is checked when the application starts:
 a missing or short value stops it rather than weakening it quietly. Development supplies its own,
 which is published in the repository and must never be used anywhere else.
+
+The three durations are checked at startup too, and each must be longer than zero: a lifetime of
+zero issues links nobody can use, and a cooldown of zero removes the resend guard. The emails quote
+whatever is configured here, so changing a lifetime changes what the message says.
 
 ## Rate limits
 

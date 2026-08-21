@@ -6,8 +6,9 @@ What you'll get: how an account is created and confirmed, and why each guard is 
 ## What it does
 
 Anyone can create an account with a username, an email address and a password. The address has to
-be confirmed before the account can be used, so a mistyped address costs a resend rather than an
-unusable account.
+be confirmed before the account can be used. A resend goes to the address held on the account, so
+it recovers a link that went astray but cannot repair an address typed wrongly: that account simply
+stays unconfirmed. Changing a saved address is not part of this slice.
 
 Confirmation is a link, emailed once and good for an hour. Asking for another retires the previous
 one, so only the newest link works.
@@ -71,8 +72,8 @@ not confirm twice, and does not lose the answer.
 ## Reading the email locally
 
 Mailpit collects everything the forum sends, at http://localhost:8025. Register, open Mailpit, and
-follow the link. With no mail server at all, set `Email:Enabled` to `false` and the message is
-written to the log instead, link included.
+follow the link. Setting `Email:Enabled` to `false` drops messages instead of sending them; nothing
+about them is logged, because a body carries a working link, so Mailpit is the way to read one.
 
 ## Testing it
 
