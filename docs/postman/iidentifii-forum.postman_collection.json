@@ -1,0 +1,473 @@
+{
+  "info": {
+    "name": "iiDENTIFii Forum API",
+    "description": "Every endpoint the forum exposes, including the failure cases. Run the folders top to bottom; requests that need an identifier take it from an earlier request, so the collection is repeatable without editing anything.\n\nSet the environment to \"Forum local\" before running.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Service",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Liveness probe. Not versioned."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "pm.test('reports healthy', () => pm.expect(pm.response.json().status).to.eql('healthy'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Browsing",
+      "description": "Reading the forum. None of these need an account.",
+      "item": [
+        {
+          "name": "List discussions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?page=1&pageSize=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "A page of discussions, newest first. Stores the first identifier for the requests below."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns a page', () => pm.expect(body.items.length).to.be.above(0));",
+                  "pm.test('reports paging', () => { pm.expect(body).to.have.property('totalCount'); pm.expect(body).to.have.property('totalPages'); });",
+                  "pm.test('newest first', () => { const dates = body.items.map(p => new Date(p.createdAt).getTime()); pm.expect(dates).to.eql([...dates].sort((a,b) => b-a)); });",
+                  "pm.test('anonymous readers have liked nothing', () => pm.expect(body.items.every(p => p.likedByMe === false)).to.be.true);",
+                  "pm.collectionVariables.set('postId', body.items[0].id);",
+                  "pm.collectionVariables.set('firstPageIds', JSON.stringify(body.items.map(p => p.id)));",
+                  "const flagged = body.items.find(p => p.tags.length > 0);",
+                  "if (flagged) { pm.collectionVariables.set('flaggedPostId', flagged.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Read one discussion",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts/{{postId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts",
+                "{{postId}}"
+              ]
+            },
+            "description": "One discussion, in the same shape as a list entry."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('is the one asked for', () => pm.expect(body.id).to.eql(pm.collectionVariables.get('postId')));",
+                  "pm.test('names its author', () => pm.expect(body.author.username).to.be.a('string').and.not.empty);",
+                  "pm.test('carries counts', () => { pm.expect(body.likeCount).to.be.a('number'); pm.expect(body.commentCount).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List replies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts/{{postId}}/comments?page=1&pageSize=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts",
+                "{{postId}}",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Replies to one discussion, oldest first."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('belongs to the discussion', () => pm.expect(body.items.every(c => c.postId === pm.collectionVariables.get('postId'))).to.be.true);",
+                  "pm.test('oldest first', () => { const dates = body.items.map(c => new Date(c.createdAt).getTime()); pm.expect(dates).to.eql([...dates].sort((a,b) => a-b)); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Second page does not repeat the first",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?page=2&pageSize=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Ordering is stable, so consecutive pages never share a discussion."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().items.map(p => p.id);",
+                  "const firstPageIds = JSON.parse(pm.collectionVariables.get('firstPageIds') || '[]');",
+                  "pm.test('shares no discussion with the first page', () => pm.expect(ids.filter(id => firstPageIds.includes(id))).to.be.empty);",
+                  "pm.test('returns its own discussions', () => pm.expect(ids.length).to.be.above(0));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Failure cases",
+      "description": "The API is judged on what it does when a request is wrong, not only when it is right.",
+      "item": [
+        {
+          "name": "Page below one is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?page=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Paging starts at 1."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refuses the request', () => pm.response.to.have.status(400));",
+                  "pm.test('is a problem document', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json'));",
+                  "pm.test('names the field', () => pm.expect(pm.response.json().errors).to.have.property('Page'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Page size above the cap is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?pageSize=1000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "pageSize",
+                  "value": "1000"
+                }
+              ]
+            },
+            "description": "A cap keeps one caller from asking for everything at once."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refuses the request', () => pm.response.to.have.status(400));",
+                  "pm.test('names the field', () => pm.expect(pm.response.json().errors).to.have.property('PageSize'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unknown discussion reports not found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts/01a02518-0000-7000-8000-000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts",
+                "01a02518-0000-7000-8000-000000000000"
+              ]
+            },
+            "description": "A well-formed identifier that matches nothing."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('reports not found', () => pm.response.to.have.status(404));",
+                  "pm.test('is a problem document', () => pm.expect(pm.response.json().status).to.eql(404));",
+                  "pm.test('carries a trace identifier', () => pm.expect(pm.response.json().traceId).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Identifier that is not a UUID does not match",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts/not-a-guid",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts",
+                "not-a-guid"
+              ]
+            },
+            "description": "The route only accepts a UUID, so this never reaches the service."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('reports not found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replies to an unknown discussion report not found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts/01a02518-0000-7000-8000-000000000000/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts",
+                "01a02518-0000-7000-8000-000000000000",
+                "comments"
+              ]
+            },
+            "description": "Asking for replies does not silently return an empty page."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('reports not found', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "postId",
+      "value": ""
+    },
+    {
+      "key": "flaggedPostId",
+      "value": ""
+    },
+    {
+      "key": "firstPageIds",
+      "value": "[]"
+    }
+  ]
+}

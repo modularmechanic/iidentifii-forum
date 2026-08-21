@@ -16,6 +16,8 @@ programmatically uses the same documented endpoints.
 | `GUIDELINES.md` | Engineering conventions |
 | `CLAUDE.md` | Contribution workflow |
 
+Full documentation is in [`docs/`](docs/README.md).
+
 ## Prerequisites
 
 - Docker Desktop, running
@@ -31,12 +33,18 @@ npm install --prefix frontend                  # once
 npm run dev --prefix frontend                  # web on http://localhost:5173
 ```
 
+The API fills an empty database with sample content on first run: three members, one moderator and
+twenty discussions with replies, likes and moderator flags. Every seeded account uses the password
+`Password123!`. See [run it for development](docs/how-to/run-for-development.md).
+
 | Address | What it is |
 | --- | --- |
 | http://localhost:5173 | The forum |
 | http://localhost:5000/health | Liveness check |
 | http://localhost:5000/scalar | API reference, in Development |
 | http://localhost:8025 | Mailpit, holding every email the API sends |
+
+PostgreSQL is published on **55432** so it cannot collide with one already installed on your machine.
 
 ## Test it
 
@@ -45,6 +53,12 @@ dotnet test backend/Forum.slnx     # unit and integration tests
 npm run test:run --prefix frontend # component tests
 npm run lint --prefix frontend     # static analysis
 ```
+
+## Test the API directly
+
+Import [`docs/postman/iidentifii-forum.postman_collection.json`](docs/postman/iidentifii-forum.postman_collection.json) and the
+environment beside it, then run the collection. Every request asserts its own outcome, including
+the failure cases, and it can be run repeatedly without editing anything.
 
 ## Status
 

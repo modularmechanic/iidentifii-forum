@@ -1,3 +1,5 @@
+using Forum.Application.Common.Exceptions;
+using Forum.Domain.Common;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -20,9 +22,22 @@ public sealed class GlobalExceptionHandler(
         var traceId = httpContext.Features.Get<IHttpActivityFeature>()?.Activity?.Id
             ?? httpContext.TraceIdentifier;
 
-        logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}", traceId);
+        var (status, title, detail) = Describe(exception);
 
-        httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        if (status == StatusCodes.Status500InternalServerError)
+        {
+            logger.LogError(exception, "Unhandled exception. TraceId: {TraceId}", traceId);
+        }
+        else
+        {
+            logger.LogInformation(
+                "Request refused with {Status}: {Message}. TraceId: {TraceId}",
+                status,
+                exception.Message,
+                traceId);
+        }
+
+        httpContext.Response.StatusCode = status;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
@@ -30,12 +45,30 @@ public sealed class GlobalExceptionHandler(
             Exception = exception,
             ProblemDetails = new ProblemDetails
             {
-                Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.6.1",
-                Title = "An unexpected error occurred.",
-                Status = StatusCodes.Status500InternalServerError,
-                Detail = "The request could not be completed. Quote the trace identifier when reporting this.",
+                Title = title,
+                Status = status,
+                Detail = detail,
                 Extensions = { ["traceId"] = traceId },
             },
         });
     }
+
+    /// <summary>
+    /// Maps a failure onto a response. Anything unrecognised is reported without its message,
+    /// so internal detail never reaches the caller.
+    /// </summary>
+    private static (int Status, string Title, string Detail) Describe(Exception exception) => exception switch
+    {
+        NotFoundException => (StatusCodes.Status404NotFound, "Not found.", exception.Message),
+        ConflictException => (StatusCodes.Status409Conflict, "Already exists.", exception.Message),
+        DomainException { Error: DomainError.Forbidden } =>
+            (StatusCodes.Status403Forbidden, "Not allowed.", exception.Message),
+        DomainException { Error: DomainError.Conflict } =>
+            (StatusCodes.Status409Conflict, "Already done.", exception.Message),
+        DomainException => (StatusCodes.Status422UnprocessableEntity, "Rule violated.", exception.Message),
+        _ => (
+            StatusCodes.Status500InternalServerError,
+            "An unexpected error occurred.",
+            "The request could not be completed. Quote the trace identifier when reporting this."),
+    };
 }

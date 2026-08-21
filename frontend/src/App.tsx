@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Link, Route, Routes } from 'react-router';
 import AppShell from '@src/components/common/ui/lg/AppShell';
 import Home from '@src/components/pages/Home/Home';
+import ViewDiscussion from '@src/components/pages/Discussions/View/ViewDiscussion';
 import Paths from '@src/domains/common/constants/Paths';
 
 /***** Constants *****/
@@ -20,6 +21,7 @@ function App() {
         <AppShell>
           <Routes>
             <Route element={<Home />} path={Paths.Home} />
+            <Route element={<ViewDiscussion />} path={Paths.DiscussionPattern} />
             <Route element={<NotFound />} path="*" />
           </Routes>
         </AppShell>
