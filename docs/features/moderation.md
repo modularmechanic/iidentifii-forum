@@ -31,10 +31,11 @@ where the thing exists: pretending it is missing would be a different untruth.
 
 ## Decisions worth knowing
 
-**The role is checked by the entity, not the button.** `Post.Flag` is handed the member and
-refuses one who is not a moderator. The endpoint carries a policy as well, so an unauthorised
-caller is turned away before any work is done — but hiding the control in the interface is a
-courtesy to the reader, never the thing that enforces the rule.
+**The role is checked by the entity, not the button.** `Post.Flag` and `Post.Unflag` are each
+handed the member and refuse one who is not a moderator. The endpoints carry a policy as well, so
+an unauthorised caller is turned away before any work is done — but hiding the control in the
+interface is a courtesy to the reader, never the thing that enforces the rule, and an endpoint
+attribute only guards the one caller that carries it.
 
 **Ownership is one method.** `EnsureOwnedBy` is called by editing and by deleting, on both
 discussions and replies. There is one place to be wrong, and it is covered by tests that call the

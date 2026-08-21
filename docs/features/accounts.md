@@ -6,9 +6,8 @@ What you'll get: how an account is created and confirmed, and why each guard is 
 ## What it does
 
 Anyone can create an account with a username, an email address and a password. The address has to
-be confirmed before the account can be used. A resend goes to the address held on the account, so
-it recovers a link that went astray but cannot repair an address typed wrongly: that account simply
-stays unconfirmed. Changing a saved address is not part of this slice.
+be confirmed before the account can be used, so a mistyped address costs a resend rather than an
+unusable account.
 
 Confirmation is a link, emailed once and good for an hour. Asking for another retires the previous
 one, so only the newest link works.
@@ -57,9 +56,24 @@ silently weakening it.
 A keyed hash is enough here, where a password needs a slow one: these secrets are long, random and
 short-lived, so there is nothing worth guessing offline.
 
-**Nothing reveals who is registered.** `resend-verification` answers the same way whether the
-address belongs to an account, to a confirmed account, or to nobody at all. The cooldown is applied
-silently for the same reason.
+**Recovery reveals nothing about who is registered.** `resend-verification` and
+`forgot-password` answer the same way whether the address belongs to an account, to a confirmed
+account, or to nobody at all. The cooldown is applied silently for the same reason. Signing in is
+the same: a username nobody holds and a wrong password give one message, and the hash is verified
+either way so the two take about as long as each other.
+
+**Registration is the exception, deliberately.** A duplicate address is refused with 409 rather
+than accepted in silence, so somebody who already has an account is told so instead of waiting for
+an email that never comes. That does let a caller test whether an address is registered, one
+address at a time and inside the account rate limit. Closing it means answering 201 either way and
+emailing the existing holder to say somebody tried; that is a change to what registration means,
+not a correction, so it is recorded here rather than made quietly. See
+[Known limitations](#known-limitations).
+
+**Silence is in the answer, not in the timing.** The same reply either way covers what the body
+says. It does not cover how long the reply takes: a known address waits for the mail server, an
+unknown one returns at once, and the difference is measurable. Closing that means handing the send
+to a queue instead of awaiting it in the request.
 
 **Rate limits are configurable.** Ten requests a minute for account routes and a hundred and twenty
 for everything else, both settable per deployment. A refusal carries `Retry-After`, so a caller
@@ -69,11 +83,24 @@ knows when to return rather than guessing.
 a query keyed on that token. The result therefore belongs to the token: remounting the page does
 not confirm twice, and does not lose the answer.
 
+## Known limitations
+
+- **Registering tells a caller whether an address is already in use.** The 409 above. Rate limited,
+  and traded knowingly for a signup that says what went wrong.
+- **The silent recovery endpoints answer at different speeds.** The body says nothing either way;
+  the time it takes does. It needs a queue to close, not a copy change.
+- **Turning email off is a development affordance.** See below.
+
 ## Reading the email locally
 
 Mailpit collects everything the forum sends, at http://localhost:8025. Register, open Mailpit, and
-follow the link. Setting `Email:Enabled` to `false` drops messages instead of sending them; nothing
-about them is logged, because a body carries a working link, so Mailpit is the way to read one.
+follow the link.
+
+With no mail server at all, set `Email:Enabled` to `false` and the message is written to the log
+instead, link included. That only happens in Development. Anywhere else the same setting logs a
+warning naming the recipient and the subject, and stops there: confirmation links, reset links and
+sign-in codes are exactly what a log should not carry, and silencing a broken mail server should
+not be the way they get there.
 
 ## Testing it
 
