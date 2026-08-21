@@ -20,6 +20,12 @@ describe('PostsList', () => {
     expect(screen.getByText(/7 replies/)).toBeInTheDocument();
   });
 
+  it('uses the singular for a single reply', () => {
+    renderWithProviders(<PostsList posts={[buildPost({ commentCount: 1 })]} />);
+
+    expect(screen.getByText('1 reply')).toBeInTheDocument();
+  });
+
   it('says so plainly when a discussion has no replies', () => {
     renderWithProviders(<PostsList posts={[buildPost({ commentCount: 0 })]} />);
 

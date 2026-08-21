@@ -116,14 +116,23 @@ public sealed class Post
         return like;
     }
 
-    public PostTag Flag(Guid moderatorId, ModerationTag tag, DateTimeOffset now)
+    /// <summary>
+    /// Marks the discussion. Only a moderator may do this, and the rule lives here rather than
+    /// only in the endpoint, so no other caller can route around it.
+    /// </summary>
+    public PostTag Flag(User moderator, ModerationTag tag, DateTimeOffset now)
     {
+        if (moderator.Role != UserRole.Moderator)
+        {
+            throw new DomainException("Only a moderator can flag a discussion.", DomainError.Forbidden);
+        }
+
         if (_tags.Any(existing => existing.Tag == tag))
         {
             throw new DomainException("This discussion already carries that flag.", DomainError.Conflict);
         }
 
-        var postTag = PostTag.Create(Id, tag, moderatorId, now);
+        var postTag = PostTag.Create(Id, tag, moderator.Id, now);
         _tags.Add(postTag);
         return postTag;
     }

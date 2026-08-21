@@ -105,8 +105,17 @@ public sealed class BrowsingTests(ApiFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    [Fact]
+    public async Task A_page_number_beyond_the_limit_is_refused_rather_than_failing()
+    {
+        var response = await _client.GetAsync($"/api/v1/posts?page={int.MaxValue}&pageSize=100");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     [Theory]
     [InlineData("?page=0", "Page")]
+    [InlineData("?page=2147483647", "Page")]
     [InlineData("?pageSize=0", "PageSize")]
     [InlineData("?pageSize=101", "PageSize")]
     public async Task Out_of_range_paging_is_refused_with_the_offending_field(string queryString, string field)

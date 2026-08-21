@@ -46,7 +46,9 @@ function PostsContainer() {
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between pb-2">
         <h2 className="font-medium">Latest</h2>
-        <p className="font-mono text-xs text-muted tabular-nums">{result.totalCount} discussions</p>
+        <p className="font-mono text-xs text-muted tabular-nums">
+          {result.totalCount} {result.totalCount === 1 ? 'discussion' : 'discussions'}
+        </p>
       </div>
       <PostsList posts={result.items} />
       <Pagination

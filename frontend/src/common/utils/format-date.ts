@@ -21,6 +21,11 @@ export function getShortDate(isoTimestamp: string): string {
 export function getRelativeTime(isoTimestamp: string, now: Date = new Date()): string {
   const elapsed = now.getTime() - new Date(isoTimestamp).getTime();
 
+  // Clock differences between the API and the browser can put a timestamp slightly ahead.
+  if (elapsed <= 0) {
+    return 'just now';
+  }
+
   if (elapsed < HOUR) {
     const minutes = Math.max(1, Math.floor(elapsed / MINUTE));
     return `${minutes}m ago`;

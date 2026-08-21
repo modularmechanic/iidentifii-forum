@@ -56,7 +56,7 @@ npm run lint --prefix frontend     # static analysis
 
 ## Test the API directly
 
-Import [`docs/postman/iidentifii-forum.postman_collection.json`](docs/postman/) and the
+Import [`docs/postman/iidentifii-forum.postman_collection.json`](docs/postman/iidentifii-forum.postman_collection.json) and the
 environment beside it, then run the collection. Every request asserts its own outcome, including
 the failure cases, and it can be run repeatedly without editing anything.
 

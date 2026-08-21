@@ -3,7 +3,8 @@
 Who this is for: anyone integrating with the API, whether through the web client or directly.
 What you'll get: every endpoint, what it accepts, and what it returns when things go wrong.
 
-All paths are prefixed `/api/v1`. Requests and responses are JSON. Failures are RFC 7807
+Every endpoint below is prefixed `/api/v1`, except `GET /health`, which is not versioned.
+Requests and responses are JSON. Failures are RFC 7807
 problem documents sent as `application/problem+json`.
 
 ## Reading discussions

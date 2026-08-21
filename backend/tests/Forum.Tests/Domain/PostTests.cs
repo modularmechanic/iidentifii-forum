@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Forum.Domain.Common;
 using Forum.Domain.Posts;
+using Forum.Domain.Users;
 using Xunit;
 
 namespace Forum.Tests.Domain;
@@ -12,6 +13,9 @@ public sealed class PostTests
     private static readonly Guid Reader = Guid.CreateVersion7();
 
     private static Post NewPost() => Post.Create(Author, "Webhook retries", "Delivered twice.", Now);
+
+    private static User NewUser(UserRole role) =>
+        User.Register($"user{role}", $"{role}@forum.local".ToLowerInvariant(), "hash", Now, role);
 
     [Fact]
     public void Liking_someone_elses_discussion_records_the_like()
@@ -58,12 +62,36 @@ public sealed class PostTests
     }
 
     [Fact]
+    public void Only_a_moderator_can_flag_a_discussion()
+    {
+        var post = NewPost();
+
+        var act = () => post.Flag(NewUser(UserRole.Member), ModerationTag.MisleadingOrFalse, Now);
+
+        act.Should().Throw<DomainException>()
+            .Which.Error.Should().Be(DomainError.Forbidden);
+        post.Tags.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void A_moderator_can_flag_a_discussion()
+    {
+        var post = NewPost();
+        var moderator = NewUser(UserRole.Moderator);
+
+        post.Flag(moderator, ModerationTag.MisleadingOrFalse, Now);
+
+        post.Tags.Should().ContainSingle(tag => tag.TaggedByUserId == moderator.Id);
+    }
+
+    [Fact]
     public void Flagging_twice_is_refused()
     {
         var post = NewPost();
-        post.Flag(Reader, ModerationTag.MisleadingOrFalse, Now);
+        var moderator = NewUser(UserRole.Moderator);
+        post.Flag(moderator, ModerationTag.MisleadingOrFalse, Now);
 
-        var act = () => post.Flag(Reader, ModerationTag.MisleadingOrFalse, Now);
+        var act = () => post.Flag(moderator, ModerationTag.MisleadingOrFalse, Now);
 
         act.Should().Throw<DomainException>()
             .Which.Error.Should().Be(DomainError.Conflict);
@@ -73,7 +101,7 @@ public sealed class PostTests
     public void Unflagging_removes_the_flag_and_reports_nothing_when_it_was_absent()
     {
         var post = NewPost();
-        post.Flag(Reader, ModerationTag.MisleadingOrFalse, Now);
+        post.Flag(NewUser(UserRole.Moderator), ModerationTag.MisleadingOrFalse, Now);
 
         post.Unflag(ModerationTag.MisleadingOrFalse).Should().NotBeNull();
         post.Tags.Should().BeEmpty();

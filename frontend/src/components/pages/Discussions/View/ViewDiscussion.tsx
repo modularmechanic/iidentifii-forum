@@ -36,7 +36,8 @@ function ViewDiscussion() {
         ‹ All discussions
       </Link>
       <Discussion post={query.data} />
-      <RepliesContainer postId={id} />
+      {/* Keyed by discussion so moving to another one starts its replies at the first page. */}
+      <RepliesContainer key={id} postId={id} />
     </div>
   );
 }

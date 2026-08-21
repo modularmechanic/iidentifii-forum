@@ -3,7 +3,7 @@ import Avatar from '@src/components/common/ui/sm/Avatar';
 import Empty from '@src/components/common/ui/sm/Empty';
 import Pill from '@src/components/common/ui/sm/Pill';
 import LikeCount from '@src/components/common/ui/md/LikeCount';
-import { getRelativeTime, getShortDate } from '@src/common/utils/format-date';
+import { getShortDate } from '@src/common/utils/format-date';
 import { ModerationTagLabels, type IPost } from '@src/domains/posts/Post';
 import Paths from '@src/domains/common/constants/Paths';
 
@@ -79,8 +79,7 @@ function _describeReplies(post: IPost): string {
     return 'No replies yet';
   }
 
-  const noun = post.commentCount === 1 ? 'reply' : 'replies';
-  return `${post.commentCount} ${noun} · last ${getRelativeTime(post.createdAt)}`;
+  return `${post.commentCount} ${post.commentCount === 1 ? 'reply' : 'replies'}`;
 }
 
 /***** Export default *****/

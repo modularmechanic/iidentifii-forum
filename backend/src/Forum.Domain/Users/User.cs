@@ -47,9 +47,16 @@ public sealed class User
                 DomainError.RuleViolation);
         }
 
-        if (trimmedEmail.Length == 0 || trimmedEmail.Length > EmailMaxLength)
+        if (trimmedEmail.Length == 0)
         {
             throw new DomainException("An email address is required.", DomainError.RuleViolation);
+        }
+
+        if (trimmedEmail.Length > EmailMaxLength)
+        {
+            throw new DomainException(
+                $"An email address cannot be longer than {EmailMaxLength} characters.",
+                DomainError.RuleViolation);
         }
 
         if (string.IsNullOrWhiteSpace(passwordHash))

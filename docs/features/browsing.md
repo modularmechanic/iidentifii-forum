@@ -26,7 +26,7 @@ naming the field. An unknown identifier returns 404. Both are RFC 7807 payloads.
 
 ```
 PostsContainer ─┐                         PostsController
-                ├─ PostService (web) ──▶  CommentsController        (HTTP)
+                ├─ services (web) ─────▶  (discussions and replies) (HTTP)
 RepliesContainer┘                                │
                                           PostService, CommentService   (rules and flow)
                                                  │

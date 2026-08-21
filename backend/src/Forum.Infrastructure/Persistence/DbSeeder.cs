@@ -89,7 +89,7 @@ public sealed class DbSeeder(
 
             if (seed.IsFlagged)
             {
-                post.Flag(moderator.Id, ModerationTag.MisleadingOrFalse, createdAt.AddHours(6));
+                post.Flag(moderator, ModerationTag.MisleadingOrFalse, createdAt.AddHours(6));
             }
 
             posts.Add(post);

@@ -30,6 +30,7 @@ public sealed class PostsController(PostService posts, CommentService comments) 
     /// <summary>Returns a page of replies to one discussion, oldest first.</summary>
     [HttpGet("{id:guid}/comments")]
     [ProducesResponseType<PagedResult<CommentDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PagedResult<CommentDto>>> GetComments(
         Guid id,

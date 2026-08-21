@@ -13,7 +13,7 @@ internal static class SeedContent
         string[] Replies);
 
     /// <summary>
-    /// Ordered oldest to newest by <c>DaysAgo</c>. Like counts are assigned round-robin from the
+    /// Ordered newest to oldest: a larger <c>DaysAgo</c> is further in the past. Like counts are assigned round-robin from the
     /// members who are not the author, so nobody likes their own discussion.
     /// </summary>
     internal static readonly SeedPost[] Posts =

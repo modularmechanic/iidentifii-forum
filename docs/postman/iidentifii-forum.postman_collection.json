@@ -96,6 +96,7 @@
                   "pm.test('newest first', () => { const dates = body.items.map(p => new Date(p.createdAt).getTime()); pm.expect(dates).to.eql([...dates].sort((a,b) => b-a)); });",
                   "pm.test('anonymous readers have liked nothing', () => pm.expect(body.items.every(p => p.likedByMe === false)).to.be.true);",
                   "pm.collectionVariables.set('postId', body.items[0].id);",
+                  "pm.collectionVariables.set('firstPageIds', JSON.stringify(body.items.map(p => p.id)));",
                   "const flagged = body.items.find(p => p.tags.length > 0);",
                   "if (flagged) { pm.collectionVariables.set('flaggedPostId', flagged.id); }"
                 ]
@@ -237,7 +238,9 @@
                 "exec": [
                   "pm.test('responds', () => pm.response.to.have.status(200));",
                   "const ids = pm.response.json().items.map(p => p.id);",
-                  "pm.test('does not repeat the first entry', () => pm.expect(ids).to.not.include(pm.collectionVariables.get('postId')));"
+                  "const firstPageIds = JSON.parse(pm.collectionVariables.get('firstPageIds') || '[]');",
+                  "pm.test('shares no discussion with the first page', () => pm.expect(ids.filter(id => firstPageIds.includes(id))).to.be.empty);",
+                  "pm.test('returns its own discussions', () => pm.expect(ids.length).to.be.above(0));"
                 ]
               }
             }
@@ -461,6 +464,10 @@
     {
       "key": "flaggedPostId",
       "value": ""
+    },
+    {
+      "key": "firstPageIds",
+      "value": "[]"
     }
   ]
 }
