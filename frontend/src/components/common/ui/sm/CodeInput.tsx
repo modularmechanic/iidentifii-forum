@@ -1,14 +1,12 @@
 import { useRef } from 'react';
-
-/***** Constants *****/
-
-const LENGTH = 6;
+import { CODE_LENGTH, emptyCode } from '@src/common/utils/code-digits';
 
 /***** Types *****/
 
 interface IProps {
-  value: string;
-  onChange: (value: string) => void;
+  /** One entry per box. An empty entry is an empty string, never a space. */
+  digits: string[];
+  onChange: (digits: string[]) => void;
 }
 
 /***** Components *****/
@@ -16,15 +14,29 @@ interface IProps {
 /**
  * Default component: six digits, one box each. Typing moves forward, backspace moves back, and a
  * pasted code fills every box at once, because most people paste it out of the email.
+ *
+ * The boxes are kept as six separate values rather than one string. Padding a string to six
+ * characters made an emptied middle box indistinguishable from a full code by length alone, and
+ * the code that was then submitted carried a space where a digit belonged.
  */
 function CodeInput(props: IProps) {
-  const { value, onChange } = props;
+  const { digits, onChange } = props;
 
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
 
+  const write = (index: number, written: string) => {
+    const next = [...digits];
+
+    for (let offset = 0; offset < written.length && index + offset < CODE_LENGTH; offset++) {
+      next[index + offset] = written[offset];
+    }
+
+    onChange(next);
+  };
+
   return (
     <div className="flex justify-center gap-2" role="group" aria-label="Six-digit code">
-      {Array.from({ length: LENGTH }, (_unused, index) => (
+      {Array.from({ length: CODE_LENGTH }, (_unused, index) => (
         <input
           aria-label={`Digit ${index + 1}`}
           autoComplete={index === 0 ? 'one-time-code' : 'off'}
@@ -33,34 +45,57 @@ function CodeInput(props: IProps) {
           key={index}
           maxLength={1}
           onChange={(event) => {
-            const digits = event.target.value.replace(/\D/g, '');
+            const written = event.target.value.replace(/\D/g, '');
 
-            if (digits === '') {
+            if (written === '') {
               return;
             }
 
-            const next = _replaceFrom(value, index, digits);
-            onChange(next);
-            _focus(boxes.current, Math.min(index + digits.length, LENGTH - 1));
+            write(index, written);
+            _focus(boxes.current, Math.min(index + written.length, CODE_LENGTH - 1));
           }}
           onKeyDown={(event) => {
             if (event.key === 'Backspace') {
               event.preventDefault();
-              onChange(_replaceAt(value, index, ''));
+
+              const next = [...digits];
+              next[index] = '';
+              onChange(next);
+
               _focus(boxes.current, Math.max(index - 1, 0));
+            }
+
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault();
+              _focus(boxes.current, Math.max(index - 1, 0));
+            }
+
+            if (event.key === 'ArrowRight') {
+              event.preventDefault();
+              _focus(boxes.current, Math.min(index + 1, CODE_LENGTH - 1));
             }
           }}
           onPaste={(event) => {
             event.preventDefault();
-            const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, LENGTH);
-            onChange(pasted);
-            _focus(boxes.current, Math.min(pasted.length, LENGTH - 1));
+
+            const pasted = event.clipboardData
+              .getData('text')
+              .replace(/\D/g, '')
+              .slice(0, CODE_LENGTH);
+            const next = emptyCode();
+
+            for (let offset = 0; offset < pasted.length; offset++) {
+              next[offset] = pasted[offset];
+            }
+
+            onChange(next);
+            _focus(boxes.current, Math.min(pasted.length, CODE_LENGTH - 1));
           }}
           ref={(element) => {
             boxes.current[index] = element;
           }}
           type="text"
-          value={value[index] ?? ''}
+          value={digits[index] ?? ''}
         />
       ))}
     </div>
@@ -68,21 +103,6 @@ function CodeInput(props: IProps) {
 }
 
 /***** Functions *****/
-
-function _replaceAt(value: string, index: number, digit: string): string {
-  const characters = value.padEnd(LENGTH, ' ').split('');
-  characters[index] = digit === '' ? ' ' : digit;
-  return characters.join('').trimEnd();
-}
-
-/** Writing several digits at once, which happens when a box already holding one is typed into. */
-function _replaceFrom(value: string, index: number, digits: string): string {
-  let next = value;
-  for (let offset = 0; offset < digits.length && index + offset < LENGTH; offset++) {
-    next = _replaceAt(next, index + offset, digits[offset]);
-  }
-  return next;
-}
 
 function _focus(boxes: (HTMLInputElement | null)[], index: number): void {
   boxes[index]?.focus();

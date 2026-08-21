@@ -1,3 +1,4 @@
+using Forum.Api.Configuration;
 using Forum.Api.Auth;
 using Forum.Api.Errors;
 using Forum.Api.RateLimiting;
@@ -9,6 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Development runs without secrets in the repository; it makes its own for the run.
+builder.AddDevelopmentSecrets();
 
 builder.Services.AddControllers();
 

@@ -3,15 +3,12 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router';
 import { useMutation } from '@tanstack/react-query';
 import Banner from '@src/components/common/ui/sm/Banner';
 import CodeInput from '@src/components/common/ui/sm/CodeInput';
+import { emptyCode, readCode } from '@src/common/utils/code-digits';
 import Paths from '@src/domains/common/constants/Paths';
 import UserService, { type ILoginChallenge } from '@src/domains/users/UserService';
 import { useAuth } from '@src/infra/auth/useAuth';
 import { HttpError } from '@src/infra/http';
 import AuthCard from '../common/AuthCard';
-
-/***** Constants *****/
-
-const CODE_LENGTH = 6;
 
 /***** Components *****/
 
@@ -24,7 +21,10 @@ function LoginCode() {
   const navigate = useNavigate();
   const { signIn } = useAuth();
 
-  const [code, setCode] = useState('');
+  const [digits, setDigits] = useState(emptyCode);
+
+  // Null until all six boxes hold a digit, so a gap can never be submitted as a code.
+  const code = readCode(digits);
 
   const challenge = (location.state as { challenge?: ILoginChallenge } | null)?.challenge;
 
@@ -52,16 +52,18 @@ function LoginCode() {
         className="flex flex-col gap-4"
         onSubmit={(event) => {
           event.preventDefault();
-          complete.mutate(code);
+          if (code !== null) {
+            complete.mutate(code);
+          }
         }}
       >
-        <CodeInput onChange={setCode} value={code} />
+        <CodeInput digits={digits} onChange={setDigits} />
 
         {complete.isError && <Banner tone="error">{_messageFrom(complete.error)}</Banner>}
 
         <button
           className="rounded-sm bg-ink px-3 py-2 text-sm font-medium text-canvas disabled:opacity-60"
-          disabled={code.length < CODE_LENGTH || complete.isPending}
+          disabled={code === null || complete.isPending}
           type="submit"
         >
           {complete.isPending ? 'Signing you in…' : 'Log in'}

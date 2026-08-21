@@ -24,14 +24,17 @@ short-lived and randomly generated, so there is nothing worth attacking offline.
 on every code check would only slow the application down.
 
 The pepper and the signing key are required at startup: without them the application refuses to
-start rather than running weakened. The development placeholders live only in
-`appsettings.Development.json`, so any other environment has no key at all and stops with
-`OptionsValidationException` naming the missing field.
+start rather than running weakened.
 
-Nothing recognises a placeholder *as* a placeholder, though. Copy those development values into a
-real deployment's environment variables and they would be accepted, because the check is that a
-key exists, not that it is a good one. Refusing known-bad values by name would close that, and is
-not built.
+Neither is in the repository. A secret committed to a public repository is a secret everybody
+has, and a signing key in particular would let anyone mint a session for any deployment that
+loaded it. In Development the application generates both on the way up, so `dotnet run` needs no
+setup; they last for that run only, which means restarting the API signs everybody out and
+invalidates any confirmation or reset link not yet used. Set `Jwt:SigningKey` and `Tokens:Pepper`
+through user secrets or the environment to keep them steady.
+
+Any other environment generates nothing. It must be given both, and stops with
+`OptionsValidationException` naming the missing field if it is not.
 
 ## Sessions
 

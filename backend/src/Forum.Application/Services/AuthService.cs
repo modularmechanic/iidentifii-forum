@@ -219,12 +219,29 @@ public sealed class AuthService(
             return;
         }
 
-        var (_, token) = await tokens.IssueAsync(user.Id, TokenPurpose.PasswordReset, cancellationToken);
-        var link = $"{app.Value.PublicUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(token)}";
+        // Two requests can read the cooldown at the same moment and both find it passed. The
+        // database refuses the second link, and the one already on its way stands.
+        //
+        // This must be swallowed rather than surfaced: a conflict can only arise for an address
+        // that has an account, so letting it out would answer 409 here and 202 for an address
+        // nobody registered — telling a caller exactly what this endpoint promises not to.
+        try
+        {
+            var (_, token) = await tokens.IssueAsync(
+                user.Id,
+                TokenPurpose.PasswordReset,
+                cancellationToken);
 
-        await email.SendAsync(
-            AuthEmails.PasswordReset(user.Email, user.Username, link, tokens.LinkLifetime),
-            cancellationToken);
+            var link = $"{app.Value.PublicUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(token)}";
+
+            await email.SendAsync(
+                AuthEmails.PasswordReset(user.Email, user.Username, link, tokens.LinkLifetime),
+                cancellationToken);
+        }
+        catch (ConflictException)
+        {
+            logger.LogInformation("Password reset refused: another request is already sending one.");
+        }
     }
 
     /// <summary>
