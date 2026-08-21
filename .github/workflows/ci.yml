@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Every pull request, whatever it is based on. A slice too large for one review is opened on
+  # top of the one before it, and a branch nobody checks is exactly the branch that breaks main.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
