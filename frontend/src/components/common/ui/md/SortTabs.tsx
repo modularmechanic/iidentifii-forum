@@ -23,19 +23,22 @@ interface IProps {
 /**
  * Default component: the orderings named rather than described. A group of buttons rather than
  * tabs, because choosing one reorders the list in place instead of revealing a different panel.
+ *
+ * Narrow screens scroll the strip rather than wrapping it: a wrapped label doubles the height of
+ * the row and drags the underline away from the tab it belongs to.
  */
 function SortTabs(props: IProps) {
   const { sort, order, onChange } = props;
 
   return (
-    <div aria-label="Sort discussions" className="flex" role="group">
+    <div aria-label="Sort discussions" className="flex min-w-0 overflow-x-auto" role="group">
       {OPTIONS.map((option) => {
         const isSelected = option.sort === sort && option.order === order;
 
         return (
           <button
             aria-pressed={isSelected}
-            className={`-mb-px border-b-2 px-3 py-2 text-sm ${
+            className={`-mb-px shrink-0 border-b-2 px-2 py-2 text-sm whitespace-nowrap sm:px-3 ${
               isSelected ? 'border-ink font-medium' : 'border-transparent text-muted hover:text-ink'
             }`}
             key={option.label}
