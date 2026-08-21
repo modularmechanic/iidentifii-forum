@@ -120,7 +120,7 @@ public sealed class AuthController(AuthService auth) : ControllerBase
     /// <summary>Who the caller is signed in as.</summary>
     [HttpGet("me")]
     [Authorize]
-    [DisableRateLimiting]
+    [EnableRateLimiting(RateLimitPolicies.Session)]
     [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserDto>> Me(CancellationToken cancellationToken)

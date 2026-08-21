@@ -8,9 +8,9 @@ using Forum.Application.Dtos;
 namespace Forum.Tests;
 
 /// <summary>
-/// Creates members that are ready to act: registered, confirmed and signed in. Tests about
-/// writing content need a bearer token rather than a lesson in how one is obtained, and the
-/// steps themselves are covered by the sign-in tests.
+/// Creates members that are ready to act: registered, confirmed, signed in, and holding the
+/// bearer token every write needs. Each step is exercised on its own elsewhere; here they are
+/// only the price of having somebody who can post.
 /// </summary>
 internal sealed class SignedInMembers(ApiFactory factory, HttpClient client)
 {

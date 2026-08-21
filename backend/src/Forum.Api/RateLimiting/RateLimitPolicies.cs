@@ -12,6 +12,15 @@ public static class RateLimitPolicies
     /// <summary>Applied to sign-in, registration and anything else that sends email.</summary>
     public const string Authentication = "authentication";
 
+    /// <summary>
+    /// Applied to reading the current session. It sits on the authentication controller but is
+    /// not an attempt to authenticate, so spending the small sign-in budget on it would sign a
+    /// reader out of a page they were only looking at. It gets the ordinary allowance rather than
+    /// being excused altogether: turning the limiter off takes the global one with it and leaves
+    /// this endpoint, which does reach the database, as the only unmetered route in the API.
+    /// </summary>
+    public const string Session = "session";
+
     public static IServiceCollection AddForumRateLimiting(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -41,6 +50,15 @@ public static class RateLimitPolicies
                     _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = limits.AuthenticationPermitsPerMinute,
+                        Window = TimeSpan.FromMinutes(1),
+                    }));
+
+            options.AddPolicy(Session, context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientKey(context),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = limits.GlobalPermitsPerMinute,
                         Window = TimeSpan.FromMinutes(1),
                     }));
 
