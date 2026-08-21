@@ -23,12 +23,15 @@ public sealed class UserTokenService(
     /// <summary>How long a link issued here stays usable, so a message can say so truthfully.</summary>
     public TimeSpan LinkLifetime => _options.LinkLifetime;
 
+    /// <summary>The same for a sign-in code, which expires far sooner than a link.</summary>
+    public TimeSpan CodeLifetime => _options.CodeLifetime;
+
     /// <summary>
     /// Issues a token, retiring any earlier one for the same purpose so only the newest works.
     /// Returns the secret to send; only its hash is kept. Two requests arriving together cannot
     /// both leave a usable token behind: the database refuses the second, as a conflict.
     /// </summary>
-    public async Task<string> IssueAsync(
+    public async Task<(UserToken Token, string Secret)> IssueAsync(
         Guid userId,
         TokenPurpose purpose,
         CancellationToken cancellationToken)
@@ -51,10 +54,14 @@ public sealed class UserTokenService(
             ? _options.CodeLifetime
             : _options.LinkLifetime;
 
-        database.UserTokens.Add(UserToken.Issue(userId, purpose, hasher.Hash(secret), lifetime, now));
+        var token = UserToken.Issue(userId, purpose, hasher.Hash(secret), lifetime, now);
+
+        database.UserTokens.Add(token);
         await database.SaveChangesAsync(cancellationToken);
 
-        return secret;
+        // The caller is handed the token itself. Looking up "the newest" afterwards orders by a
+        // timestamp two rows can share, and could return the one just retired.
+        return (token, secret);
     }
 
     /// <summary>
@@ -78,17 +85,18 @@ public sealed class UserTokenService(
     /// outstanding token, so guessing runs out of attempts rather than continuing indefinitely.
     /// </summary>
     public async Task<UserToken?> RedeemAsync(
-        Guid userId,
+        Guid tokenId,
         TokenPurpose purpose,
         string secret,
         CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
 
-        var token = await database.UserTokens
-            .Where(candidate => candidate.UserId == userId && candidate.Purpose == purpose)
-            .OrderByDescending(candidate => candidate.CreatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+        // Named, not searched for: ordering by a timestamp two rows can share would sometimes
+        // spend a token that had already been retired and refuse a correct code.
+        var token = await database.UserTokens.SingleOrDefaultAsync(
+            candidate => candidate.Id == tokenId && candidate.Purpose == purpose,
+            cancellationToken);
 
         if (token is null || !token.IsUsable(now))
         {
@@ -130,6 +138,18 @@ public sealed class UserTokenService(
 
         return await TrySpendAsync(token.Id, now, cancellationToken) ? token : null;
     }
+
+    /// <summary>
+    /// The token of a kind that has not been spent. At most one can exist: the filtered unique
+    /// index on the table says so, which is what makes this a sensible question to ask.
+    /// </summary>
+    public async Task<UserToken?> FindOutstandingAsync(
+        Guid userId,
+        TokenPurpose purpose,
+        CancellationToken cancellationToken)
+        => await database.UserTokens.SingleOrDefaultAsync(
+            token => token.UserId == userId && token.Purpose == purpose && token.ConsumedAt == null,
+            cancellationToken);
 
     /// <summary>Spends every outstanding token for someone, whatever it was for.</summary>
     public async Task RetireAllAsync(Guid userId, CancellationToken cancellationToken)

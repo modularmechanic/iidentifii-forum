@@ -1,3 +1,4 @@
+using Forum.Api.Auth;
 using Forum.Api.Errors;
 using Forum.Api.RateLimiting;
 using Forum.Api.Serialization;
@@ -13,6 +14,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddForumApplication(builder.Configuration);
 builder.Services.AddForumInfrastructure(builder.Configuration);
+builder.Services.AddForumAuthentication(builder.Configuration);
 
 // Payloads resolve through the source-generated context; see ForumJsonContext.
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -44,6 +46,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(options => options.WithTitle("iiDENTIFii Forum API"));
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

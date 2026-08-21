@@ -61,6 +61,9 @@ public sealed class GlobalExceptionHandler(
     {
         NotFoundException => (StatusCodes.Status404NotFound, "Not found.", exception.Message),
         InvalidTokenException => (StatusCodes.Status400BadRequest, "Invalid token.", exception.Message),
+        AuthenticationException => (StatusCodes.Status401Unauthorized, "Not signed in.", exception.Message),
+        EmailNotVerifiedException =>
+            (StatusCodes.Status403Forbidden, "Email not confirmed.", exception.Message),
         ConflictException => (StatusCodes.Status409Conflict, "Already exists.", exception.Message),
         DomainException { Error: DomainError.Forbidden } =>
             (StatusCodes.Status403Forbidden, "Not allowed.", exception.Message),

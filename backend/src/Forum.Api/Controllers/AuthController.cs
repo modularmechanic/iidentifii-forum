@@ -1,6 +1,8 @@
+using Forum.Api.Auth;
 using Forum.Api.RateLimiting;
 using Forum.Application.Dtos;
 using Forum.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -61,4 +63,66 @@ public sealed class AuthController(AuthService auth) : ControllerBase
         return Accepted(new AcknowledgementResponse(
             "If that address needs confirming, a new link is on its way."));
     }
+
+    /// <summary>
+    /// Checks the password and emails a code. The password alone does not sign anybody in.
+    /// </summary>
+    [HttpPost("login")]
+    [ProducesResponseType<LoginChallengeResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<LoginChallengeResponse>> Login(
+        LoginRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await auth.BeginSignInAsync(request, cancellationToken));
+
+    /// <summary>Exchanges the emailed code for a session.</summary>
+    [HttpPost("verify-2fa")]
+    [ProducesResponseType<AuthenticatedResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthenticatedResponse>> VerifyTwoFactor(
+        VerifyTwoFactorRequest request,
+        CancellationToken cancellationToken)
+        => Ok(await auth.CompleteSignInAsync(request, cancellationToken));
+
+    /// <summary>
+    /// Sends a link to set a new password. Always accepted, so the reply cannot be used to find
+    /// out who is registered.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    [ProducesResponseType<AcknowledgementResponse>(StatusCodes.Status202Accepted)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AcknowledgementResponse>> ForgotPassword(
+        ForgotPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        await auth.ForgotPasswordAsync(request.Email, cancellationToken);
+
+        return Accepted(new AcknowledgementResponse(
+            "If that address has an account, a link to set a new password is on its way."));
+    }
+
+    /// <summary>Sets a new password using the emailed link.</summary>
+    [HttpPost("reset-password")]
+    [ProducesResponseType<AcknowledgementResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AcknowledgementResponse>> ResetPassword(
+        ResetPasswordRequest request,
+        CancellationToken cancellationToken)
+    {
+        await auth.ResetPasswordAsync(request, cancellationToken);
+
+        return Ok(new AcknowledgementResponse("Your password is changed. You can sign in with it."));
+    }
+
+    /// <summary>Who the caller is signed in as.</summary>
+    [HttpGet("me")]
+    [Authorize]
+    [DisableRateLimiting]
+    [ProducesResponseType<UserDto>(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserDto>> Me(CancellationToken cancellationToken)
+        => Ok(await auth.GetSignedInAsync(User.GetRequiredUserId(), cancellationToken));
 }

@@ -51,6 +51,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("ConnectionStrings:Forum", _database.GetConnectionString());
         builder.UseSetting("Database:SeedOnStartup", "true");
         builder.UseSetting("Tokens:Pepper", "integration-test-pepper-value-long-enough");
+        builder.UseSetting("Jwt:SigningKey", "integration-test-signing-key-long-enough-to-pass");
         builder.UseSetting("App:PublicUrl", "http://localhost:5173");
 
         // Every test shares one client address, so the production limit would be reached by the
