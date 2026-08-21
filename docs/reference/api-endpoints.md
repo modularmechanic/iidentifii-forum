@@ -120,6 +120,66 @@ Returns a page of replies, oldest first.
 Always returns 202, whether or not the address belongs to an account. A cooldown is applied
 silently. Neither the status nor the body reveals who is registered.
 
+## Signing in
+
+### `POST /auth/login`
+
+`{ "username": "...", "password": "..." }`
+
+Checks the password and emails a six-digit code. The password alone does not sign anybody in.
+
+Returns `{ "challengeId": "...", "maskedEmail": "b**@forum.local", "expiresAt": "..." }`.
+
+| Status | When |
+| --- | --- |
+| 200 | The password was right; a code is on its way |
+| 400 | A field is missing |
+| 401 | The username is unknown, or the password is wrong. The two are not told apart |
+| 403 | The address has not been confirmed yet |
+
+### `POST /auth/verify-2fa`
+
+`{ "challengeId": "...", "code": "123456" }`
+
+Returns `{ "token": "...", "expiresAt": "...", "user": { ... } }`.
+
+| Status | When |
+| --- | --- |
+| 200 | The code was right, and a session is returned |
+| 400 | The code is not six digits, or the challenge identifier is missing |
+| 401 | The code is wrong, expired, already used, or the challenge is spent |
+
+Five wrong codes spend the challenge. After that the right code is refused too, and signing in
+starts again from the password.
+
+### `POST /auth/forgot-password`
+
+`{ "email": "..." }`
+
+Always returns 202, whether or not the address belongs to an account, and applies its cooldown
+silently. Neither the status, the body nor the timing reveals who is registered.
+
+### `POST /auth/reset-password`
+
+`{ "token": "...", "newPassword": "..." }`, the token taken from the emailed link.
+
+| Status | When |
+| --- | --- |
+| 200 | The password is changed |
+| 400 | The token is unknown, expired or already used, or the password breaks a rule |
+
+Setting a password retires every outstanding one-time token for that account. Sessions already
+issued are not revoked; see [the security model](../explanation/security-model.md).
+
+### `GET /auth/me`
+
+Requires `Authorization: Bearer <token>`. Returns the signed-in member.
+
+| Status | When |
+| --- | --- |
+| 200 | The token is valid |
+| 401 | The token is missing, expired or not trusted |
+
 ## Service
 
 ### `GET /health`

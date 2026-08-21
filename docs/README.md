@@ -12,11 +12,13 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | Building on it | [Engineering guidelines](../GUIDELINES.md), [feature pages](#feature-pages) |
 | Testing it | [Run the tests](how-to/run-tests.md), [data model](reference/data-model.md) |
 | Integrating against the API | [Endpoint reference](reference/api-endpoints.md) |
+| Reviewing what protects an account | [Security model](explanation/security-model.md) |
 
 ## Sections
 
 - **How-to guides** solve one task at a time.
 - **Reference** states facts: endpoints, configuration, the data model.
+- **Explanation** gives the reasoning behind a choice, and what it costs.
 - **Feature pages** explain one slice of behaviour and how it hangs together.
 
 ## Feature pages
@@ -26,3 +28,10 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | [Browsing](features/browsing.md) | Reading discussions and replies without an account |
 | [Filtering and sorting](features/filtering-and-sorting.md) | Narrowing and ordering the list |
 | [Accounts](features/accounts.md) | Registering and confirming an email address |
+| [Signing in](features/signing-in.md) | Password, emailed code, and resetting a forgotten password |
+
+## Explanation
+
+| Page | Covers |
+| --- | --- |
+| [Security model](explanation/security-model.md) | What protects an account, what does not, and why |
