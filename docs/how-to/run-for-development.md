@@ -56,7 +56,8 @@ Seeding runs only when the database has no users, so restarting never duplicates
 
 | Account | Role |
 | --- | --- |
-| `alice`, `bob`, `carol` | Member |
+| `alice`, `bob`, `carol` | Member, and the authors of the sample discussions |
+| `dave`, `erin`, `frank`, `grace`, `heidi`, `ivan`, `judy` | Member; they supply the likes and replies |
 | `mod` | Moderator |
 
 Every seeded account uses the password `Password123!` and is already verified. These accounts

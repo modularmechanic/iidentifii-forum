@@ -23,3 +23,4 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | Page | Covers |
 | --- | --- |
 | [Browsing](features/browsing.md) | Reading discussions and replies without an account |
+| [Filtering and sorting](features/filtering-and-sorting.md) | Narrowing and ordering the list |

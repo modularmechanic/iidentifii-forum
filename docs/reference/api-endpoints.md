@@ -15,8 +15,17 @@ Returns a page of discussions, newest first.
 
 | Parameter | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `page` | integer | 1 | From 1 |
+| `page` | integer | 1 | From 1, up to 21474836 |
 | `pageSize` | integer | 20 | 1 to 100 |
+| `from` | date | none | `YYYY-MM-DD`, UTC; on or after this day |
+| `to` | date | none | `YYYY-MM-DD`, UTC; the whole of this day is included |
+| `author` | string | none | Username, case ignored, up to 32 characters |
+| `tag` | string | none | `MisleadingOrFalse` |
+| `sort` | string | `CreatedAt` | `CreatedAt` or `LikeCount` |
+| `order` | string | `Descending` | `Ascending` or `Descending` |
+
+Filters combine. Ordering always ends with the creation time and the identifier, so paging never
+repeats or skips a discussion when several share a like count.
 
 ```json
 {
@@ -50,7 +59,7 @@ Returns a page of discussions, newest first.
 | Status | When |
 | --- | --- |
 | 200 | Always, even when no discussion matches |
-| 400 | `page` below 1, or `pageSize` outside 1 to 100 |
+| 400 | Paging outside its bounds, a range that ends before it starts, or an unrecognised `sort`, `order`, `tag` or date |
 
 ### `GET /posts/{id}`
 
@@ -69,6 +78,7 @@ Returns a page of replies, oldest first.
 | --- | --- | --- | --- |
 | `page` | integer | 1 | From 1 |
 | `pageSize` | integer | 20 | 1 to 100 |
+| `order` | string | `Ascending` | Oldest first by default |
 
 | Status | When |
 | --- | --- |
