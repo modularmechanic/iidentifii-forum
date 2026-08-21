@@ -120,6 +120,53 @@ Returns a page of replies, oldest first.
 Always returns 202, whether or not the address belongs to an account. A cooldown is applied
 silently. Neither the status nor the body reveals who is registered.
 
+## Contributing content
+
+Every endpoint here needs `Authorization: Bearer <token>`; without one the answer is 401.
+
+### `POST /posts`
+
+`{ "title": "...", "body": "..." }`
+
+| Status | When |
+| --- | --- |
+| 201 | Created. `Location` carries the new discussion |
+| 400 | The title or body is empty, or longer than the limit |
+| 401 | No session |
+
+### `POST /posts/{id}/comments`
+
+`{ "body": "..." }`
+
+| Status | When |
+| --- | --- |
+| 201 | Created |
+| 400 | The body is empty or longer than 2,000 characters |
+| 401 | No session |
+| 404 | No discussion has that identifier |
+
+### `POST /posts/{id}/like`
+
+No body.
+
+| Status | When |
+| --- | --- |
+| 201 | The like was recorded |
+| 401 | No session |
+| 404 | No discussion has that identifier |
+| 409 | You have already liked it. Two requests at once produce one 201 and one 409 |
+| 422 | It is your own discussion |
+
+### `DELETE /posts/{id}/like`
+
+No body.
+
+| Status | When |
+| --- | --- |
+| 204 | The like is gone |
+| 401 | No session |
+| 404 | No discussion has that identifier, or you had not liked it |
+
 ## Signing in
 
 ### `POST /auth/login`
@@ -156,8 +203,14 @@ starts again from the password.
 
 `{ "email": "..." }`
 
-Always returns 202, whether or not the address belongs to an account, and applies its cooldown
-silently. Neither the status, the body nor the timing reveals who is registered.
+| Status | When |
+| --- | --- |
+| 202 | The request was well formed. Whether or not the address belongs to an account |
+| 400 | `email` is missing, or is not shaped like an address |
+
+The 400 is about the shape of the request, not about the account: a well-formed address always
+gets 202, and the cooldown is applied silently. Neither the status, the body nor the timing
+reveals who is registered.
 
 ### `POST /auth/reset-password`
 

@@ -30,6 +30,8 @@ namespace Forum.Api.Serialization;
 [JsonSerializable(typeof(AuthenticatedResponse))]
 [JsonSerializable(typeof(ForgotPasswordRequest))]
 [JsonSerializable(typeof(ResetPasswordRequest))]
+[JsonSerializable(typeof(CreatePostRequest))]
+[JsonSerializable(typeof(CreateCommentRequest))]
 [JsonSerializable(typeof(PostDto))]
 [JsonSerializable(typeof(PostSort))]
 [JsonSerializable(typeof(SortOrder))]

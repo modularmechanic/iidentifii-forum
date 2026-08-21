@@ -68,7 +68,9 @@ export async function fetchRootJson<T>(path: string, init?: RequestInit): Promis
     throw await _toHttpError(response);
   }
 
-  if (response.status === 204) {
+  // A write can succeed without having anything to say: 204, or a 201 whose only news is the
+  // Location header. Asking those for JSON would fail on an empty body.
+  if (response.status === 204 || !(response.headers.get('Content-Type') ?? '').includes('json')) {
     return undefined as T;
   }
 

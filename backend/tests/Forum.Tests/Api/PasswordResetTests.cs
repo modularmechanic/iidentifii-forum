@@ -129,8 +129,17 @@ public sealed class PasswordResetTests(ApiFactory factory)
 
     private string CodeFor(string emailAddress)
     {
-        var body = factory.Emails.LastTo(emailAddress)?.PlainTextBody ?? string.Empty;
-        return System.Text.RegularExpressions.Regex.Match(body, @"code is (\d{6})").Groups[1].Value;
+        // An empty code would be refused and the assertion would see the 401 it wanted, so this
+        // test would pass whether or not a code was ever sent. Both the missing message and the
+        // message without a code have to stop it instead.
+        var body = factory.Emails.LastTo(emailAddress)?.PlainTextBody
+            ?? throw new InvalidOperationException($"No message was sent to {emailAddress}.");
+
+        var match = System.Text.RegularExpressions.Regex.Match(body, @"code is (\d{6})");
+
+        return match.Success
+            ? match.Groups[1].Value
+            : throw new InvalidOperationException($"The message to {emailAddress} carried no code.");
     }
 
     private Task<HttpResponseMessage> ForgotAsync(string emailAddress)

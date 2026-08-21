@@ -1,0 +1,53 @@
+/***** Types *****/
+
+interface IProps {
+  count: number;
+  isLiked: boolean;
+  /** Why the control cannot be used, or undefined when it can. */
+  disabledReason?: string;
+  isPending: boolean;
+  onToggle: () => void;
+}
+
+/***** Components *****/
+
+/**
+ * Default component: the like count, and the control that changes it. Reading is open to
+ * everyone, so an anonymous visitor still sees the number; only the action needs an account.
+ */
+function LikeButton(props: IProps) {
+  const { count, isLiked, disabledReason, isPending, onToggle } = props;
+
+  const isDisabled = disabledReason !== undefined || isPending;
+
+  return (
+    <button
+      aria-label={isLiked ? 'Remove your like' : 'Like this discussion'}
+      aria-pressed={isLiked}
+      className={`inline-flex w-12 shrink-0 flex-col items-center gap-0.5 self-center rounded-sm py-1 ${
+        isLiked ? 'text-accent' : 'text-muted'
+      } ${isDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-subtle hover:text-accent'}`}
+      disabled={isDisabled}
+      onClick={onToggle}
+      title={disabledReason ?? (isLiked ? 'Remove your like' : 'Like this discussion')}
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        className="size-4"
+        fill={isLiked ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        viewBox="0 0 24 24"
+      >
+        <path d="M12 21s-7-4.6-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.4-9.5 9-9.5 9z" />
+      </svg>
+      <span className="font-mono text-sm tabular-nums">{count}</span>
+      <span className="sr-only">likes</span>
+    </button>
+  );
+}
+
+/***** Export default *****/
+
+export default LikeButton;

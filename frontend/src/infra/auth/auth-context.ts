@@ -14,7 +14,7 @@ export interface IAuthValue {
 /***** Constants *****/
 
 /**
- * Held in its own file rather than beside the provider: a module that exports both a component and
- * something else loses fast refresh, and the linter says so.
+ * Kept in its own module so the provider's file exports a component and nothing else, and so a
+ * component that only needs to read the session does not have to import the provider to get it.
  */
 export const AuthContext = createContext<IAuthValue | null>(null);
