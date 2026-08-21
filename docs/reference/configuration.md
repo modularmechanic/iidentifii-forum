@@ -30,9 +30,11 @@ Development changes three things: the database may be seeded, the Scalar referen
 The migration is applied on every start, whatever the environment. That suits one instance; a
 fleet would apply migrations as a separate step instead.
 
-Seeding needs **both** `Database:SeedOnStartup` and the Development environment. Asked for
-anywhere else, it is refused and the refusal is logged, because every seeded account shares one
-published password.
+Seeding needs **both** `Database:SeedOnStartup` and the Development environment, because every
+seeded account shares one published password. The two are combined at the call site in
+`Program.cs`, so setting the flag in Production seeds nothing — and says nothing about having
+skipped it. `InitialiseDatabaseAsync` carries a second guard that logs the refusal, but nothing in
+the running application reaches it; a test calls the method directly to exercise it.
 
 ## Where the forum is reachable
 

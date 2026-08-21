@@ -178,9 +178,9 @@ An empty database is filled with eleven accounts sharing `Password123!`, all con
 **Not chosen: an empty forum.** An assessor would have to register, confirm, and write content
 before there was anything to look at, which is several minutes spent on nothing.
 
-**What it costs:** a published password. The API refuses to seed unless the environment is
-Development *and* the setting is on, and logs the refusal when asked, so the content cannot reach
-a real deployment by accident.
+**What it costs:** a published password. Seeding needs the Development environment *and* the
+setting, so the content cannot reach a real deployment by accident — though a Production start with
+the setting left on says nothing about having skipped it.
 
 ## Related
 

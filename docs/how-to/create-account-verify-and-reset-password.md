@@ -38,7 +38,7 @@ You cannot sign in yet. An unconfirmed account is refused at the password step, 
 The link works once and lasts an hour. Following it a second time is refused, which is what you
 want from something that arrived in an inbox.
 
-If it has expired, use **Send the link again** on the check-your-inbox page. Asking for another
+If it has expired, use **Send it again** on the check-your-inbox page. Asking for another
 link retires the previous one, so only the newest works. There is a sixty-second cooldown between
 requests, applied without telling you — see below.
 

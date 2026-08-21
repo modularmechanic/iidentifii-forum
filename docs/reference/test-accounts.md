@@ -33,8 +33,8 @@ The seven members who write nothing supply the replies and the likes, so like co
 one discussion to the next and ordering by popularity is worth looking at.
 
 **These accounts exist for development and assessment only.** They share one published password,
-which is why the API refuses to seed at all outside the Development environment, and logs the
-refusal when asked.
+which is why the API seeds only in the Development environment. Setting `Database:SeedOnStartup`
+anywhere else seeds nothing, silently.
 
 Signing in still takes two steps for a seeded account. Read the code from Mailpit at
 http://localhost:8025.
