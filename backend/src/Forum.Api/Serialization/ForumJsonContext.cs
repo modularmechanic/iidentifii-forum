@@ -20,6 +20,8 @@ namespace Forum.Api.Serialization;
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(HealthResponse))]
 [JsonSerializable(typeof(PostDto))]
+[JsonSerializable(typeof(PostSort))]
+[JsonSerializable(typeof(SortOrder))]
 [JsonSerializable(typeof(PagedResult<PostDto>))]
 [JsonSerializable(typeof(CommentDto))]
 [JsonSerializable(typeof(PagedResult<CommentDto>))]

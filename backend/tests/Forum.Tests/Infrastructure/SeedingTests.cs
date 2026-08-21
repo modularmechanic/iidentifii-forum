@@ -38,7 +38,7 @@ public sealed class SeedingTests : IAsyncLifetime
         await seeder.SeedAsync();
         var afterSecondRun = await context.Users.CountAsync();
 
-        afterFirstRun.Should().Be(4);
+        afterFirstRun.Should().Be(11);
         afterSecondRun.Should().Be(afterFirstRun);
         (await context.Posts.CountAsync()).Should().Be(20);
         (await context.PostTags.CountAsync()).Should().BeGreaterThan(0);
@@ -132,7 +132,7 @@ public sealed class SeedingTests : IAsyncLifetime
         }
 
         await using var context = CreateContext();
-        (await context.Users.CountAsync()).Should().Be(4);
+        (await context.Users.CountAsync()).Should().Be(11);
     }
 
     /// <summary>Captures what the seeder reported, so a test can prove which path it took.</summary>

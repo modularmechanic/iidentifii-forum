@@ -1,6 +1,7 @@
 using Forum.Application.Common.Exceptions;
 using Forum.Application.Common.Interfaces;
 using Forum.Application.Common.Models;
+using Forum.Domain.Posts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Forum.Application.Posts;
@@ -8,19 +9,17 @@ namespace Forum.Application.Posts;
 /// <summary>Reads and writes discussions. Rules that must always hold live on the entity.</summary>
 public sealed class PostService(IForumDbContext database)
 {
-    /// <summary>Returns one page of discussions, newest first.</summary>
+    /// <summary>Returns one page of discussions, filtered and ordered as the query asks.</summary>
     public async Task<PagedResult<PostDto>> GetPageAsync(
         PostQuery query,
         Guid? currentUserId,
         CancellationToken cancellationToken)
     {
-        var posts = database.Posts.AsNoTracking();
+        var posts = Filter(database.Posts.AsNoTracking(), query);
 
         var totalCount = await posts.CountAsync(cancellationToken);
 
-        var items = await posts
-            .OrderByDescending(post => post.CreatedAt)
-            .ThenByDescending(post => post.Id)
+        var items = await Order(posts, query)
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .Select(PostProjections.ToDto(currentUserId))
@@ -39,5 +38,57 @@ public sealed class PostService(IForumDbContext database)
             .SingleOrDefaultAsync(cancellationToken);
 
         return post ?? throw NotFoundException.Discussion(id);
+    }
+
+    private static IQueryable<Post> Filter(IQueryable<Post> posts, PostQuery query)
+    {
+        if (query.From is { } from)
+        {
+            var start = from.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            posts = posts.Where(post => post.CreatedAt >= start);
+        }
+
+        if (query.To is { } to)
+        {
+            // Exclusive upper bound on the next day, so the whole of "to" is included.
+            var endExclusive = to.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            posts = posts.Where(post => post.CreatedAt < endExclusive);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Author))
+        {
+            // Usernames are stored as citext, so this compares without regard to case and still
+            // uses the unique index.
+            var author = query.Author.Trim();
+            posts = posts.Where(post => post.Author.Username == author);
+        }
+
+        if (query.Tag is { } tag)
+        {
+            posts = posts.Where(post => post.Tags.Any(postTag => postTag.Tag == tag));
+        }
+
+        return posts;
+    }
+
+    /// <summary>
+    /// Orders the page. A second and third key make the order total: without them, discussions
+    /// sharing a like count or a timestamp could appear on two pages, or on none.
+    /// </summary>
+    private static IQueryable<Post> Order(IQueryable<Post> posts, PostQuery query)
+    {
+        var ascending = query.Order == SortOrder.Ascending;
+
+        return query.Sort switch
+        {
+            PostSort.LikeCount => ascending
+                ? posts.OrderBy(post => post.Likes.Count).ThenBy(post => post.CreatedAt).ThenBy(post => post.Id)
+                : posts.OrderByDescending(post => post.Likes.Count)
+                    .ThenByDescending(post => post.CreatedAt)
+                    .ThenBy(post => post.Id),
+            _ => ascending
+                ? posts.OrderBy(post => post.CreatedAt).ThenBy(post => post.Id)
+                : posts.OrderByDescending(post => post.CreatedAt).ThenBy(post => post.Id),
+        };
     }
 }

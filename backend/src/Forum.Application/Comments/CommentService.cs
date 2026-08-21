@@ -30,9 +30,11 @@ public sealed class CommentService(IForumDbContext database)
 
         var totalCount = await comments.CountAsync(cancellationToken);
 
-        var items = await comments
-            .OrderBy(comment => comment.CreatedAt)
-            .ThenBy(comment => comment.Id)
+        var ordered = query.Order == SortOrder.Descending
+            ? comments.OrderByDescending(comment => comment.CreatedAt).ThenBy(comment => comment.Id)
+            : comments.OrderBy(comment => comment.CreatedAt).ThenBy(comment => comment.Id);
+
+        var items = await ordered
             .Skip((query.Page - 1) * query.PageSize)
             .Take(query.PageSize)
             .Select(comment => new CommentDto(
