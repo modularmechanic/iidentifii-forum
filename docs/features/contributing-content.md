@@ -49,9 +49,17 @@ particular. The count is public; who liked it is not published.
 **Replies are counted, not embedded.** A discussion carries `commentCount`, and replies are
 fetched separately. The list would otherwise carry every reply of every discussion on the page.
 
-**The list expands replies on request.** Pressing the reply count fetches the first few replies
-for that discussion and shows them in place. Nothing is fetched until it is asked for, so opening
-a page of twenty discussions still costs one request rather than twenty-one.
+**The list expands replies on request.** Pressing the reply count fetches a few replies for that
+discussion and shows them in place. Nothing is fetched until it is asked for, so opening a page of
+twenty discussions still costs one request rather than twenty-one.
+
+**A member can answer from the list.** Somebody who has just read the thread has the answer in
+mind now, and making them open the discussion first is a good way to lose it. The expanded row
+carries the same reply box the discussion does.
+
+**The expanded preview reads newest first**, unlike the discussion itself, which reads in
+conversation order. A reader scanning the list wants the latest word — and it means a reply
+written there appears where it was written, rather than on a later page of the preview.
 
 ## What it looks like
 
@@ -67,6 +75,10 @@ Replying, from the discussion itself:
 
 ![A discussion with the reply box below it](../screenshots/reply-composer.png)
 
+Or without leaving the list at all:
+
+![A row expanded, showing the latest replies and a reply box](../screenshots/inline-reply.png)
+
 ## Trying it by hand
 
 1. Sign in, then press **Start a discussion**.
@@ -75,3 +87,5 @@ Replying, from the discussion itself:
 4. Sign in as somebody else, like it, and the count moves.
 5. Like it again through Postman: 409.
 6. Press a reply count in the list. The replies appear without leaving the page.
+7. Answer from there. The reply appears at the top of the preview and the count moves, without a
+   page ever being left.

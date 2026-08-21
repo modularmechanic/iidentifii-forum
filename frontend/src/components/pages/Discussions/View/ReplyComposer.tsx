@@ -33,9 +33,11 @@ function ReplyComposer(props: IProps) {
     mutationFn: (text: string) => CommentService.create(postId, text),
     onSuccess: async () => {
       setBody('');
-      // The replies and the discussion's own reply count both moved.
+      // The replies moved, and so did the reply count the discussion carries — which is shown
+      // both on the discussion itself and on its row in the list.
       await queryClient.invalidateQueries({ queryKey: ['comments', postId] });
       await queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      await queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
   });
 

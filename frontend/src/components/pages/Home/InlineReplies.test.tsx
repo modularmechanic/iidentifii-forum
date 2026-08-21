@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import CommentService from '@src/domains/comments/CommentService';
 import PostService from '@src/domains/posts/PostService';
-import { buildComment, buildPost } from '@src/test/factories';
+import { buildComment, buildPost, signInAs } from '@src/test/factories';
 import { renderWithProviders } from '@src/test/render';
 import PostsContainer from './PostsContainer';
 
@@ -98,6 +98,50 @@ describe('replies in the list', () => {
     await userEvent.click(toggle);
 
     expect(screen.queryByText('At least once.')).not.toBeInTheDocument();
+  });
+
+  it('lets a member answer without leaving the list', async () => {
+    signInAs();
+    vi.spyOn(PostService, 'fetchPage').mockResolvedValue(listOf());
+    vi.spyOn(CommentService, 'fetchPage').mockResolvedValue({
+      items: [buildComment()],
+      page: 1,
+      pageSize: 3,
+      totalCount: 7,
+      totalPages: 3,
+      hasPrevious: false,
+      hasNext: true,
+    });
+    const create = vi.spyOn(CommentService, 'create').mockResolvedValue(buildComment());
+
+    renderWithProviders(<PostsContainer />);
+    await userEvent.click(await screen.findByRole('button', { name: '7 replies' }));
+
+    await userEvent.type(await screen.findByLabelText('Your reply'), 'Answered from the list.');
+    await userEvent.click(screen.getByRole('button', { name: 'Post reply' }));
+
+    await waitFor(() =>
+      expect(create).toHaveBeenCalledWith(buildPost().id, 'Answered from the list.'),
+    );
+  });
+
+  it('asks an anonymous reader to log in instead of offering a box', async () => {
+    vi.spyOn(PostService, 'fetchPage').mockResolvedValue(listOf());
+    vi.spyOn(CommentService, 'fetchPage').mockResolvedValue({
+      items: [buildComment()],
+      page: 1,
+      pageSize: 3,
+      totalCount: 7,
+      totalPages: 3,
+      hasPrevious: false,
+      hasNext: true,
+    });
+
+    renderWithProviders(<PostsContainer />);
+    await userEvent.click(await screen.findByRole('button', { name: '7 replies' }));
+
+    expect(await screen.findByRole('link', { name: 'Log in' })).toBeInTheDocument();
+    expect(screen.queryByLabelText('Your reply')).not.toBeInTheDocument();
   });
 
   it('offers nothing to expand when there are no replies', async () => {
