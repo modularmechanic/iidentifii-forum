@@ -26,7 +26,9 @@ function PostsList(props: IProps) {
   if (posts.length === 0) {
     return (
       <div className="rounded-sm border border-line">
-        <Empty title="No discussions yet">Once somebody starts one, it appears here.</Empty>
+        <Empty title="No discussions match these filters">
+          Try a wider date range, or clear the filters.
+        </Empty>
       </div>
     );
   }

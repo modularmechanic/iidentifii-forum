@@ -249,6 +249,473 @@
       ]
     },
     {
+      "name": "Filtering and sorting",
+      "description": "Narrowing and ordering the list. Filters combine, and ordering is total so paging never repeats a discussion.",
+      "item": [
+        {
+          "name": "Filter by author",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?author=alice&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "alice"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Only one member's discussions."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns something', () => pm.expect(body.items.length).to.be.above(0));",
+                  "pm.test('only that author', () => pm.expect(body.items.every(p => p.author.username === 'alice')).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Author matching ignores case",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?author=ALICE&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "ALICE"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Usernames are compared without regard to case."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('still finds them', () => pm.expect(body.items.length).to.be.above(0));",
+                  "pm.test('and they are the same author', () => pm.expect(body.items.every(p => p.author.username === 'alice')).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filter by moderation flag",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?tag=MisleadingOrFalse&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "tag",
+                  "value": "MisleadingOrFalse"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Only discussions a moderator has flagged."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns something', () => pm.expect(body.items.length).to.be.above(0));",
+                  "pm.test('all flagged', () => pm.expect(body.items.every(p => p.tags.length > 0)).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Order by likes, most first",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?sort=LikeCount&order=Descending&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "LikeCount"
+                },
+                {
+                  "key": "order",
+                  "value": "Descending"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Popularity first. Stores the identifiers to check paging below."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const counts = pm.response.json().items.map(p => p.likeCount);",
+                  "pm.test('varies', () => pm.expect(new Set(counts).size).to.be.above(1));",
+                  "pm.test('descending', () => pm.expect(counts).to.eql([...counts].sort((a,b) => b-a)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Order by date, oldest first",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?sort=CreatedAt&order=Ascending&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "CreatedAt"
+                },
+                {
+                  "key": "order",
+                  "value": "Ascending"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "The other direction of the default ordering."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const dates = pm.response.json().items.map(p => new Date(p.createdAt).getTime());",
+                  "pm.test('ascending', () => pm.expect(dates).to.eql([...dates].sort((a,b) => a-b)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Paging by likes does not repeat a discussion",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?sort=LikeCount&order=Descending&page=1&pageSize=7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "LikeCount"
+                },
+                {
+                  "key": "order",
+                  "value": "Descending"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "7"
+                }
+              ]
+            },
+            "description": "Many discussions share a like count, so this is where an ambiguous order would show."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('likePageOne', JSON.stringify(pm.response.json().items.map(p => p.id)));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Second page by likes shares nothing with the first",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?sort=LikeCount&order=Descending&page=2&pageSize=7",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "LikeCount"
+                },
+                {
+                  "key": "order",
+                  "value": "Descending"
+                },
+                {
+                  "key": "page",
+                  "value": "2"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "7"
+                }
+              ]
+            },
+            "description": "Proves the ordering is total."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const ids = pm.response.json().items.map(p => p.id);",
+                  "const first = JSON.parse(pm.collectionVariables.get('likePageOne') || '[]');",
+                  "pm.test('no overlap', () => pm.expect(ids.filter(id => first.includes(id))).to.be.empty);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Filters combine",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?author=carol&tag=MisleadingOrFalse&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "carol"
+                },
+                {
+                  "key": "tag",
+                  "value": "MisleadingOrFalse"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Both conditions apply, rather than the last one winning."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "pm.test('both applied', () => pm.expect(pm.response.json().items.every(p => p.author.username === 'carol' && p.tags.length > 0)).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Replies newest first",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts/{{postId}}/comments?order=Descending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts",
+                "{{postId}}",
+                "comments"
+              ],
+              "query": [
+                {
+                  "key": "order",
+                  "value": "Descending"
+                }
+              ]
+            },
+            "description": "Replies default to oldest first; this reverses them."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responds', () => pm.response.to.have.status(200));",
+                  "const dates = pm.response.json().items.map(c => new Date(c.createdAt).getTime());",
+                  "pm.test('descending', () => pm.expect(dates).to.eql([...dates].sort((a,b) => b-a)));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Failure cases",
       "description": "The API is judged on what it does when a request is wrong, not only when it is right.",
       "item": [
@@ -452,6 +919,184 @@
               }
             }
           ]
+        },
+        {
+          "name": "A range that ends before it starts is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?from=2026-08-20&to=2026-08-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-08-20"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-08-01"
+                }
+              ]
+            },
+            "description": "The two bounds are validated against each other."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refuses the request', () => pm.response.to.have.status(400));",
+                  "pm.test('names the bounds', () => { const keys = Object.keys(pm.response.json().errors); pm.expect(keys.some(k => k === 'From' || k === 'To')).to.be.true; });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "An unknown sort is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?sort=Nonsense",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "Nonsense"
+                }
+              ]
+            },
+            "description": "Only the documented orderings are accepted."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refuses the request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "An unknown flag is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?tag=NotATag",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "tag",
+                  "value": "NotATag"
+                }
+              ]
+            },
+            "description": "Only the documented flags are accepted."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refuses the request', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A page number that would overflow is refused",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/posts?page=2147483647&pageSize=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "2147483647"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Skipping to this page would overflow, so it is refused rather than failing."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('refuses the request', () => pm.response.to.have.status(400));",
+                  "pm.test('is a problem document', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json'));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }
@@ -467,6 +1112,10 @@
     },
     {
       "key": "firstPageIds",
+      "value": "[]"
+    },
+    {
+      "key": "likePageOne",
       "value": "[]"
     }
   ]

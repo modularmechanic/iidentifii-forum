@@ -41,7 +41,7 @@ describe('PostsList', () => {
   it('shows an empty state rather than a bare list', () => {
     renderWithProviders(<PostsList posts={[]} />);
 
-    expect(screen.getByText('No discussions yet')).toBeInTheDocument();
+    expect(screen.getByText('No discussions match these filters')).toBeInTheDocument();
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 });

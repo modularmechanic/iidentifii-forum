@@ -19,7 +19,10 @@ public sealed class DbSeeder(
     /// <summary>Shared by every seeded account. Documented in the README; development only.</summary>
     public const string SeedPassword = "Password123!";
 
-    private static readonly string[] MemberUsernames = ["alice", "bob", "carol"];
+    // Enough members that like counts vary, so ordering by popularity is worth looking at.
+    private static readonly string[] MemberUsernames =
+        ["alice", "bob", "carol", "dave", "erin", "frank", "grace", "heidi", "ivan", "judy"];
+
     private const string ModeratorUsername = "mod";
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
@@ -110,8 +113,8 @@ public sealed class DbSeeder(
     }
 
     /// <summary>
-    /// Spreads likes across everyone except the author, so the self-like rule holds in seed data
-    /// too. There are only four accounts, so a requested count above three is capped.
+    /// Spreads likes across members other than the author, so the self-like rule holds in seed
+    /// data too. A requested count beyond the membership is capped.
     /// </summary>
     private static void AddLikes(
         Post post,

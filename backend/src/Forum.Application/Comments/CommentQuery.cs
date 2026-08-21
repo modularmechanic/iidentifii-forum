@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Forum.Application.Common.Models;
+using Forum.Application.Posts;
 
 namespace Forum.Application.Comments;
 
@@ -11,4 +12,7 @@ public sealed record CommentQuery
 
     [Range(1, PageBounds.MaxPageSize, ErrorMessage = "Page size must be between 1 and 100.")]
     public int PageSize { get; init; } = 20;
+
+    /// <summary>Oldest first by default, because a conversation reads in the order it happened.</summary>
+    public SortOrder Order { get; init; } = SortOrder.Ascending;
 }
