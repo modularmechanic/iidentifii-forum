@@ -49,7 +49,7 @@ function EditDiscussion() {
   if (!UserOps.isOwner(user, query.data.author.id)) {
     return (
       <section className="py-12 text-center">
-        <h1 className="font-medium">This is not yours to edit</h1>
+        <h1 className="text-lg font-semibold">This is not yours to edit</h1>
         <p className="mt-1 text-sm text-muted">Only the author can change a discussion.</p>
       </section>
     );
@@ -69,6 +69,7 @@ function EditDiscussion() {
         isSaving={save.isPending}
         onCancel={() => void navigate(Paths.discussion(id))}
         onSubmit={(title, body) => save.mutate({ title, body })}
+        pendingLabel="Saving…"
         submitLabel="Save changes"
       />
     </section>

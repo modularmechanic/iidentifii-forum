@@ -77,16 +77,20 @@ export async function fetchRootJson<T>(path: string, init?: RequestInit): Promis
   return (await response.json()) as T;
 }
 
-/** Reads the problem details a failed response carries, falling back to the status text. */
+/**
+ * Reads the problem details a failed response carries. When it carries none the message is left
+ * empty rather than filled with the status text: "Internal Server Error" is the browser's voice,
+ * not the forum's, and every caller already has its own sentence for a failure it cannot explain.
+ */
 async function _toHttpError(response: Response): Promise<HttpError> {
   try {
     const problem = (await response.json()) as IProblemDetails;
     return new HttpError(
       response.status,
-      problem.detail ?? problem.title ?? response.statusText,
+      problem.detail ?? problem.title ?? '',
       problem.errors ?? {},
     );
   } catch {
-    return new HttpError(response.status, response.statusText);
+    return new HttpError(response.status, '');
   }
 }

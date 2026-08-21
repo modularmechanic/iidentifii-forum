@@ -54,7 +54,7 @@ function Discussion(props: IProps) {
             onToggle={like.toggle}
           />
           {like.disabledReason !== undefined && (
-            <p className="text-sm text-muted">{like.disabledReason}.</p>
+            <p className="text-sm text-muted">{like.disabledReason}</p>
           )}
         </div>
 

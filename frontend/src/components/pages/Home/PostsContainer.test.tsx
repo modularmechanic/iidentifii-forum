@@ -141,14 +141,17 @@ describe('PostsContainer', () => {
     );
   });
 
-  it('offers a retry when the request fails', async () => {
-    const fetchPage = vi.spyOn(PostService, 'fetchPage').mockRejectedValue(new Error('offline'));
+  /** A browser's own wording for an unreachable server used to be shown to the reader. */
+  it("offers a retry when the request fails, in the forum's own words", async () => {
+    const fetchPage = vi
+      .spyOn(PostService, 'fetchPage')
+      .mockRejectedValue(new Error('Failed to fetch'));
 
     renderWithProviders(<PostsContainer />);
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      /Could not load discussions|offline/,
-    );
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Could not load the discussions.');
+    expect(alert).not.toHaveTextContent('Failed to fetch');
 
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
 

@@ -35,6 +35,7 @@ function NewDiscussion() {
         isSaving={create.isPending}
         onCancel={() => void navigate(Paths.Home)}
         onSubmit={(title, body) => create.mutate({ title, body })}
+        pendingLabel="Posting…"
         submitLabel="Post discussion"
       />
     </section>

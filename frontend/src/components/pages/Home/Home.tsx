@@ -40,7 +40,7 @@ function Introduction() {
   return (
     <section className="border-b border-line pb-5">
       <h1 className="text-xl font-semibold">
-        Integration questions, answered by the people who ship them.
+        Integration questions, answered by the people who ship them
       </h1>
       <p className="mt-2 max-w-prose text-sm text-muted">
         A forum for engineers, clients and partners to ask questions, share integration knowledge,

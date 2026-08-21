@@ -6,14 +6,18 @@ import PostsList from './PostsList';
 
 describe('PostsList', () => {
   it('links each discussion to its own page', () => {
-    renderWithProviders(<PostsList posts={[buildPost({ title: 'Webhook retries' })]} />);
+    renderWithProviders(
+      <PostsList hasFilters={false} posts={[buildPost({ title: 'Webhook retries' })]} />,
+    );
 
     const link = screen.getByRole('link', { name: 'Webhook retries' });
     expect(link).toHaveAttribute('href', '/discussions/01a02518-cbf8-7b23-8b12-613e5bf64a39');
   });
 
   it('shows the author, like count and reply count', () => {
-    renderWithProviders(<PostsList posts={[buildPost({ likeCount: 14, commentCount: 7 })]} />);
+    renderWithProviders(
+      <PostsList hasFilters={false} posts={[buildPost({ likeCount: 14, commentCount: 7 })]} />,
+    );
 
     expect(screen.getByText('bob')).toBeInTheDocument();
     expect(screen.getByText('14')).toBeInTheDocument();
@@ -21,27 +25,36 @@ describe('PostsList', () => {
   });
 
   it('uses the singular for a single reply', () => {
-    renderWithProviders(<PostsList posts={[buildPost({ commentCount: 1 })]} />);
+    renderWithProviders(<PostsList hasFilters={false} posts={[buildPost({ commentCount: 1 })]} />);
 
     expect(screen.getByText('1 reply')).toBeInTheDocument();
   });
 
   it('says so plainly when a discussion has no replies', () => {
-    renderWithProviders(<PostsList posts={[buildPost({ commentCount: 0 })]} />);
+    renderWithProviders(<PostsList hasFilters={false} posts={[buildPost({ commentCount: 0 })]} />);
 
     expect(screen.getByText('No replies yet')).toBeInTheDocument();
   });
 
   it('marks a flagged discussion in the list', () => {
-    renderWithProviders(<PostsList posts={[buildPost({ tags: [buildFlag()] })]} />);
+    renderWithProviders(
+      <PostsList hasFilters={false} posts={[buildPost({ tags: [buildFlag()] })]} />,
+    );
 
     expect(screen.getByText('Misleading or false')).toBeInTheDocument();
   });
 
   it('shows an empty state rather than a bare list', () => {
-    renderWithProviders(<PostsList posts={[]} />);
+    renderWithProviders(<PostsList hasFilters={false} posts={[]} />);
+
+    expect(screen.getByText('No discussions yet')).toBeInTheDocument();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
+  });
+
+  /** An unfiltered forum with nothing in it used to blame filters the reader never set. */
+  it('blames the filters only when there are filters', () => {
+    renderWithProviders(<PostsList hasFilters posts={[]} />);
 
     expect(screen.getByText('No discussions match these filters')).toBeInTheDocument();
-    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 });

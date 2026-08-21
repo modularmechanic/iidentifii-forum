@@ -14,6 +14,8 @@ interface IProps {
   initialTitle?: string;
   initialBody?: string;
   submitLabel: string;
+  /** What the submit button says while the request is out. */
+  pendingLabel: string;
   isSaving: boolean;
   errorMessage?: string;
   onSubmit: (title: string, body: string) => void;
@@ -31,6 +33,7 @@ function PostForm(props: IProps) {
     initialTitle = '',
     initialBody = '',
     submitLabel,
+    pendingLabel,
     isSaving,
     errorMessage,
     onSubmit,
@@ -88,7 +91,7 @@ function PostForm(props: IProps) {
           disabled={isSaving || isEmpty}
           type="submit"
         >
-          {isSaving ? 'Saving…' : submitLabel}
+          {isSaving ? pendingLabel : submitLabel}
         </button>
         <button
           className="rounded-sm border border-line px-3 py-2 text-sm disabled:opacity-60"
