@@ -23,9 +23,15 @@ A keyed hash is right here where a slow hash is right for passwords: these secre
 short-lived and randomly generated, so there is nothing worth attacking offline. Spending PBKDF2
 on every code check would only slow the application down.
 
-The pepper and the signing key are validated at startup. A missing one stops the application
-instead of quietly weakening it, and the development placeholders are refused outside
-Development.
+The pepper and the signing key are required at startup: without them the application refuses to
+start rather than running weakened. The development placeholders live only in
+`appsettings.Development.json`, so any other environment has no key at all and stops with
+`OptionsValidationException` naming the missing field.
+
+Nothing recognises a placeholder *as* a placeholder, though. Copy those development values into a
+real deployment's environment variables and they would be accepted, because the check is that a
+key exists, not that it is a good one. Refusing known-bad values by name would close that, and is
+not built.
 
 ## Sessions
 
