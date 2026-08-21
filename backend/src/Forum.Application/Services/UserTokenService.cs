@@ -20,9 +20,13 @@ public sealed class UserTokenService(
 {
     private readonly TokenOptions _options = options.Value;
 
+    /// <summary>How long a link issued here stays usable, so a message can say so truthfully.</summary>
+    public TimeSpan LinkLifetime => _options.LinkLifetime;
+
     /// <summary>
     /// Issues a token, retiring any earlier one for the same purpose so only the newest works.
-    /// Returns the secret to send; only its hash is kept.
+    /// Returns the secret to send; only its hash is kept. Two requests arriving together cannot
+    /// both leave a usable token behind: the database refuses the second, as a conflict.
     /// </summary>
     public async Task<string> IssueAsync(
         Guid userId,
@@ -31,7 +35,13 @@ public sealed class UserTokenService(
     {
         var now = clock.GetUtcNow();
 
-        await RetireOutstandingAsync(userId, purpose, now, cancellationToken);
+        // Retired by a direct update rather than through the change tracker, so the earlier token
+        // is gone before the replacement is written and the two never briefly coexist.
+        await database.UserTokens
+            .Where(token => token.UserId == userId && token.Purpose == purpose && token.ConsumedAt == null)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(token => token.ConsumedAt, (DateTimeOffset?)now),
+                cancellationToken);
 
         var secret = purpose == TokenPurpose.TwoFactor
             ? SecretGenerator.NewCode()
@@ -92,13 +102,14 @@ public sealed class UserTokenService(
             return null;
         }
 
-        token.Consume(now);
-        await database.SaveChangesAsync(cancellationToken);
-        return token;
+        return await TrySpendAsync(token.Id, now, cancellationToken) ? token : null;
     }
 
-    /// <summary>Finds who a link belongs to, since a link carries no username.</summary>
-    public async Task<UserToken?> FindUsableBySecretAsync(
+    /// <summary>
+    /// Finds who a link belongs to, since a link carries no username, and spends it in the same
+    /// step. Two requests carrying the same link cannot both be handed the token back.
+    /// </summary>
+    public async Task<UserToken?> ConsumeBySecretAsync(
         TokenPurpose purpose,
         string secret,
         CancellationToken cancellationToken)
@@ -112,7 +123,12 @@ public sealed class UserTokenService(
                 candidate => candidate.Purpose == purpose && candidate.SecretHash == secretHash,
                 cancellationToken);
 
-        return token?.IsUsable(now) == true ? token : null;
+        if (token is null || !token.IsUsable(now))
+        {
+            return null;
+        }
+
+        return await TrySpendAsync(token.Id, now, cancellationToken) ? token : null;
     }
 
     /// <summary>Spends every outstanding token for someone, whatever it was for.</summary>
@@ -120,31 +136,28 @@ public sealed class UserTokenService(
     {
         var now = clock.GetUtcNow();
 
-        var tokens = await database.UserTokens
+        await database.UserTokens
             .Where(token => token.UserId == userId && token.ConsumedAt == null)
-            .ToListAsync(cancellationToken);
-
-        foreach (var token in tokens)
-        {
-            token.Consume(now);
-        }
-
-        await database.SaveChangesAsync(cancellationToken);
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(token => token.ConsumedAt, (DateTimeOffset?)now),
+                cancellationToken);
     }
 
-    private async Task RetireOutstandingAsync(
-        Guid userId,
-        TokenPurpose purpose,
+    /// <summary>
+    /// Spends the token only while it is still unspent, in one statement. The database decides
+    /// which of two requests arriving together wins; the loser is told the token is gone.
+    /// </summary>
+    private async Task<bool> TrySpendAsync(
+        Guid tokenId,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        var outstanding = await database.UserTokens
-            .Where(token => token.UserId == userId && token.Purpose == purpose && token.ConsumedAt == null)
-            .ToListAsync(cancellationToken);
+        var spent = await database.UserTokens
+            .Where(token => token.Id == tokenId && token.ConsumedAt == null)
+            .ExecuteUpdateAsync(
+                setters => setters.SetProperty(token => token.ConsumedAt, (DateTimeOffset?)now),
+                cancellationToken);
 
-        foreach (var token in outstanding)
-        {
-            token.Consume(now);
-        }
+        return spent == 1;
     }
 }

@@ -10,6 +10,9 @@ namespace Forum.Tests.Api;
 [Collection(ApiCollection.Name)]
 public sealed class EmailVerificationTests(ApiFactory factory)
 {
+    /// <summary>Enough requests in flight together to lose a race that is not guarded.</summary>
+    private const int ConcurrentRequests = 4;
+
     private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
@@ -86,6 +89,18 @@ public sealed class EmailVerificationTests(ApiFactory factory)
         problem!.Detail.Should().Contain("expired");
     }
 
+    /// <summary>The link stops working at the moment it expires, not a moment after it.</summary>
+    [Fact]
+    public async Task A_link_at_the_moment_it_expires_stops_working()
+    {
+        var account = await RegisterAsync();
+        var token = TokenFor(account.Email);
+
+        factory.Clock.Advance(TimeSpan.FromHours(1));
+
+        (await VerifyAsync(token)).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     [Fact]
     public async Task A_link_still_within_its_hour_works()
     {
@@ -145,6 +160,52 @@ public sealed class EmailVerificationTests(ApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.Accepted);
         factory.Emails.Sent.Count.Should().Be(before);
+    }
+
+    /// <summary>
+    /// One browser retrying, or the same link opened twice at once: the token is spent in a single
+    /// step, so exactly one request confirms and the rest are told the link has gone.
+    /// </summary>
+    [Fact]
+    public async Task The_same_link_clicked_several_times_at_once_confirms_once()
+    {
+        var account = await RegisterAsync();
+        var token = TokenFor(account.Email);
+
+        var responses = await Task.WhenAll(
+            Enumerable.Range(0, ConcurrentRequests).Select(_ => VerifyAsync(token)));
+
+        responses.Count(response => response.StatusCode == HttpStatusCode.OK).Should().Be(1);
+        responses.Should().AllSatisfy(response =>
+            response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.BadRequest));
+    }
+
+    /// <summary>
+    /// Resends arriving together cannot leave several working links behind. Whichever of them the
+    /// database lets through, only one of the links that went out still confirms the address.
+    /// </summary>
+    [Fact]
+    public async Task Several_resends_at_once_leave_one_working_link()
+    {
+        var account = await RegisterAsync();
+        factory.Clock.Advance(TimeSpan.FromMinutes(2));
+
+        var responses = await Task.WhenAll(
+            Enumerable.Range(0, ConcurrentRequests).Select(_ => ResendAsync(account.Email)));
+
+        responses.Should().AllSatisfy(response =>
+            response.StatusCode.Should().Be(HttpStatusCode.Accepted));
+
+        var confirmed = 0;
+        foreach (var token in factory.Emails.TokensTo(account.Email))
+        {
+            if ((await VerifyAsync(token)).StatusCode == HttpStatusCode.OK)
+            {
+                confirmed++;
+            }
+        }
+
+        confirmed.Should().Be(1, "only the newest link survives");
     }
 
     private string TokenFor(string emailAddress)

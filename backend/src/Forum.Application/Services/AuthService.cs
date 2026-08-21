@@ -55,7 +55,8 @@ public sealed class AuthService(
     /// <summary>Confirms an address. The link works once.</summary>
     public async Task VerifyEmailAsync(string token, CancellationToken cancellationToken)
     {
-        var userToken = await tokens.FindUsableBySecretAsync(
+        // Found and spent in one step, so two requests carrying the same link cannot both confirm.
+        var userToken = await tokens.ConsumeBySecretAsync(
             TokenPurpose.EmailVerification,
             token,
             cancellationToken);
@@ -70,7 +71,6 @@ public sealed class AuthService(
             cancellationToken);
 
         user.VerifyEmail(clock.GetUtcNow());
-        userToken.Consume(clock.GetUtcNow());
 
         await database.SaveChangesAsync(cancellationToken);
     }
@@ -97,7 +97,16 @@ public sealed class AuthService(
             return;
         }
 
-        await SendVerificationAsync(user, cancellationToken);
+        // Two requests can read the cooldown at the same moment and both find it passed. The
+        // database then refuses the second replacement link, and the one already on its way stands.
+        try
+        {
+            await SendVerificationAsync(user, cancellationToken);
+        }
+        catch (ConflictException)
+        {
+            logger.LogInformation("Verification resend refused: another request is already sending one.");
+        }
     }
 
     private async Task SendVerificationAsync(User user, CancellationToken cancellationToken)
@@ -105,6 +114,12 @@ public sealed class AuthService(
         var token = await tokens.IssueAsync(user.Id, TokenPurpose.EmailVerification, cancellationToken);
         var link = $"{app.Value.PublicUrl.TrimEnd('/')}/verify-email?token={Uri.EscapeDataString(token)}";
 
-        await email.SendAsync(AuthEmails.Verification(user.Email, user.Username, link), cancellationToken);
+        var message = AuthEmails.Verification(
+            user.Email,
+            user.Username,
+            link,
+            tokens.LinkLifetime);
+
+        await email.SendAsync(message, cancellationToken);
     }
 }
