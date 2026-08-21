@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Forum.Infrastructure.Email;
 
 /// <summary>Where outgoing mail is handed over, and who it comes from.</summary>
-public sealed class EmailOptions
+public sealed class EmailOptions : IValidatableObject
 {
     public const string SectionName = "Email";
 
@@ -26,4 +26,19 @@ public sealed class EmailOptions
     public string? Password { get; init; }
 
     public bool UseStartTls { get; init; }
+
+    /// <summary>
+    /// Half a credential is worse than none: a username alone authenticates with an empty password,
+    /// and a password alone is never sent at all. Neither is visible from the outside, so the boot
+    /// stops rather than letting mail fail later for a reason nobody can see.
+    /// </summary>
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrEmpty(Username) != string.IsNullOrEmpty(Password))
+        {
+            yield return new ValidationResult(
+                "An SMTP username and password must be given together, or neither given.",
+                [nameof(Username), nameof(Password)]);
+        }
+    }
 }
