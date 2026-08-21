@@ -4,6 +4,12 @@ import type { IPost, ModerationTag, PostSort, SortOrder } from './Post';
 
 /***** Types *****/
 
+/** What starting a discussion needs. */
+export interface ICreatePostRequest {
+  title: string;
+  body: string;
+}
+
 /** Everything the list endpoint accepts. Undefined values are simply left out. */
 export interface IPostPageRequest {
   page?: number;
@@ -18,7 +24,7 @@ export interface IPostPageRequest {
 
 /***** Functions *****/
 
-/** Reads discussions. Components call this through a container, never directly. */
+/** Reads and writes discussions. Components call this through a container, never directly. */
 const PostService = {
   async fetchPage(request: IPostPageRequest = {}): Promise<IPaged<IPost>> {
     const query = new URLSearchParams();
@@ -35,6 +41,22 @@ const PostService = {
 
   async fetchById(id: string): Promise<IPost> {
     return await fetchJson<IPost>(`/posts/${id}`);
+  },
+
+  async create(request: ICreatePostRequest): Promise<IPost> {
+    return await fetchJson<IPost>('/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+  },
+
+  async like(id: string): Promise<void> {
+    await fetchJson<void>(`/posts/${id}/like`, { method: 'POST' });
+  },
+
+  async unlike(id: string): Promise<void> {
+    await fetchJson<void>(`/posts/${id}/like`, { method: 'DELETE' });
   },
 } as const;
 

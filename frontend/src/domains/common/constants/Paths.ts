@@ -2,6 +2,7 @@
 const Paths = {
   Home: '/',
   DiscussionPattern: '/discussions/:id',
+  NewDiscussion: '/discussions/new',
   discussion: (id: string) => `/discussions/${id}`,
   Register: '/register',
   CheckInbox: '/register/check-inbox',

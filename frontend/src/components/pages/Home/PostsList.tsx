@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
 import Avatar from '@src/components/common/ui/sm/Avatar';
 import Empty from '@src/components/common/ui/sm/Empty';
 import Pill from '@src/components/common/ui/sm/Pill';
-import LikeCount from '@src/components/common/ui/md/LikeCount';
+import LikeButton from '@src/components/common/ui/md/LikeButton';
+import { useLike } from '@src/components/common/hooks/useLike';
 import { getShortDate } from '@src/common/utils/format-date';
 import { ModerationTagLabels, type IPost } from '@src/domains/posts/Post';
 import Paths from '@src/domains/common/constants/Paths';
+import InlineReplies from './InlineReplies';
 
 /***** Types *****/
 
@@ -46,29 +49,57 @@ function PostsList(props: IProps) {
 function PostRow(props: IRowProps) {
   const { post } = props;
 
+  const like = useLike(post);
+  const [isShowingReplies, setIsShowingReplies] = useState(false);
+
+  const hasReplies = post.commentCount > 0;
+
   return (
-    <li className="flex gap-3 p-4 hover:bg-subtle">
-      <LikeCount count={post.likeCount} />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-medium">
-            <Link className="hover:text-accent" to={Paths.discussion(post.id)}>
-              {post.title}
-            </Link>
-          </h3>
-          {post.tags.map((tag) => (
-            <Pill key={tag.tag} label={ModerationTagLabels[tag.tag]} />
-          ))}
-        </div>
-        <p className="mt-1 line-clamp-2 text-sm text-muted">{post.body}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-          <Avatar username={post.author.username} />
-          <span className="font-medium text-ink">{post.author.username}</span>
-          <time dateTime={post.createdAt}>{getShortDate(post.createdAt)}</time>
-          <span aria-hidden="true">·</span>
-          <span>{_describeReplies(post)}</span>
+    <li className="p-4 hover:bg-subtle">
+      {/* The like control sits against the summary, so expanding the replies below does not
+          drag it into the middle of a much taller row. */}
+      <div className="flex gap-3">
+        <LikeButton
+          count={post.likeCount}
+          disabledReason={like.disabledReason}
+          isLiked={post.likedByMe}
+          isPending={like.isPending}
+          onToggle={like.toggle}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-medium">
+              <Link className="hover:text-accent" to={Paths.discussion(post.id)}>
+                {post.title}
+              </Link>
+            </h3>
+            {post.tags.map((tag) => (
+              <Pill key={tag.tag} label={ModerationTagLabels[tag.tag]} />
+            ))}
+          </div>
+          <p className="mt-1 line-clamp-2 text-sm text-muted">{post.body}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+            <Avatar username={post.author.username} />
+            <span className="font-medium text-ink">{post.author.username}</span>
+            <time dateTime={post.createdAt}>{getShortDate(post.createdAt)}</time>
+            <span aria-hidden="true">·</span>
+            {hasReplies ? (
+              <button
+                aria-expanded={isShowingReplies}
+                className="text-accent underline underline-offset-2"
+                onClick={() => setIsShowingReplies((shown) => !shown)}
+                type="button"
+              >
+                {_describeReplies(post)}
+              </button>
+            ) : (
+              <span>{_describeReplies(post)}</span>
+            )}
+          </div>
         </div>
       </div>
+
+      {isShowingReplies && <InlineReplies postId={post.id} totalCount={post.commentCount} />}
     </li>
   );
 }

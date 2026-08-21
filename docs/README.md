@@ -29,6 +29,7 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | [Filtering and sorting](features/filtering-and-sorting.md) | Narrowing and ordering the list |
 | [Accounts](features/accounts.md) | Registering and confirming an email address |
 | [Signing in](features/signing-in.md) | Password, emailed code, and resetting a forgotten password |
+| [Contributing content](features/contributing-content.md) | Posting, replying and liking |
 
 ## Explanation
 

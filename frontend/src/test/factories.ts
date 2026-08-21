@@ -1,5 +1,6 @@
 import type { IComment } from '@src/domains/comments/Comment';
 import { ModerationTags, type IPost } from '@src/domains/posts/Post';
+import { storeSession } from '@src/infra/auth/session-storage';
 
 /** Builds a discussion for tests, letting each test state only what it cares about. */
 export function buildPost(overrides: Partial<IPost> = {}): IPost {
@@ -36,4 +37,20 @@ export function buildComment(overrides: Partial<IComment> = {}): IComment {
     updatedAt: null,
     ...overrides,
   };
+}
+
+/**
+ * Signs a member in for the duration of a test by leaving a session where the provider looks for
+ * one, which is what a real sign-in does.
+ */
+export function signInAs(username = 'dana', id = '01a02518-0000-7000-8000-0000000000aa') {
+  const user = { id, username, email: `${username}@example.com`, role: 'Member' as const };
+
+  storeSession({
+    token: 'test-token',
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+    user,
+  });
+
+  return user;
 }

@@ -1,8 +1,10 @@
 import Avatar from '@src/components/common/ui/sm/Avatar';
-import LikeCount from '@src/components/common/ui/md/LikeCount';
+import LikeButton from '@src/components/common/ui/md/LikeButton';
+import { useLike } from '@src/components/common/hooks/useLike';
 import { getShortDate } from '@src/common/utils/format-date';
 import type { IPost } from '@src/domains/posts/Post';
 import FlagBanner from './FlagBanner';
+import ReplyComposer from './ReplyComposer';
 
 /***** Types *****/
 
@@ -15,6 +17,8 @@ interface IProps {
 /** Default component: one discussion in full, with any moderator flag above the body. */
 function Discussion(props: IProps) {
   const { post } = props;
+
+  const like = useLike(post);
 
   return (
     <article className="flex flex-col gap-4 rounded-sm border border-line p-6">
@@ -35,9 +39,21 @@ function Discussion(props: IProps) {
 
       <div className="max-w-prose text-sm whitespace-pre-line">{post.body}</div>
 
-      <div className="flex items-center gap-3 border-t border-line pt-4">
-        <LikeCount count={post.likeCount} />
-        <p className="text-sm text-muted">Log in to like or reply.</p>
+      <div className="flex flex-col gap-4 border-t border-line pt-4">
+        <div className="flex items-center gap-3">
+          <LikeButton
+            count={post.likeCount}
+            disabledReason={like.disabledReason}
+            isLiked={post.likedByMe}
+            isPending={like.isPending}
+            onToggle={like.toggle}
+          />
+          {like.disabledReason !== undefined && (
+            <p className="text-sm text-muted">{like.disabledReason}.</p>
+          )}
+        </div>
+
+        <ReplyComposer postId={post.id} />
       </div>
     </article>
   );
