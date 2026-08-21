@@ -165,7 +165,7 @@ public sealed class PostsController(PostService posts, CommentService comments) 
         ModerationTag tag,
         CancellationToken cancellationToken)
     {
-        await posts.UnflagAsync(id, tag, cancellationToken);
+        await posts.UnflagAsync(id, User.GetRequiredUserId(), tag, cancellationToken);
 
         return NoContent();
     }

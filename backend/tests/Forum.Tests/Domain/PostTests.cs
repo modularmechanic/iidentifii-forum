@@ -101,11 +101,28 @@ public sealed class PostTests
     public void Unflagging_removes_the_flag_and_reports_nothing_when_it_was_absent()
     {
         var post = NewPost();
+        var moderator = NewUser(UserRole.Moderator);
+        post.Flag(moderator, ModerationTag.MisleadingOrFalse, Now);
+
+        post.Unflag(moderator, ModerationTag.MisleadingOrFalse).Should().NotBeNull();
+        post.Tags.Should().BeEmpty();
+        post.Unflag(moderator, ModerationTag.MisleadingOrFalse).Should().BeNull();
+    }
+
+    /// <summary>
+    /// Flagging refused a member here as well as at the endpoint; taking a flag off trusted the
+    /// endpoint alone, so a second caller would have gone straight past the rule.
+    /// </summary>
+    [Fact]
+    public void Unflagging_by_a_member_is_refused()
+    {
+        var post = NewPost();
         post.Flag(NewUser(UserRole.Moderator), ModerationTag.MisleadingOrFalse, Now);
 
-        post.Unflag(ModerationTag.MisleadingOrFalse).Should().NotBeNull();
-        post.Tags.Should().BeEmpty();
-        post.Unflag(ModerationTag.MisleadingOrFalse).Should().BeNull();
+        var act = () => post.Unflag(NewUser(UserRole.Member), ModerationTag.MisleadingOrFalse);
+
+        act.Should().Throw<DomainException>()
+            .Which.Error.Should().Be(DomainError.Forbidden);
     }
 
     [Fact]
