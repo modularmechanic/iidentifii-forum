@@ -198,8 +198,10 @@ public sealed class AuthService(
     }
 
     /// <summary>
-    /// Sends a link to set a new password. Always reports the same thing, so the reply cannot be
-    /// used to find out who is registered.
+    /// Sends a link to set a new password. Always reports the same thing, so the body of the
+    /// reply says nothing about who is registered. How long it takes to arrive still does: a
+    /// known address waits for the mail server, an unknown one returns at once. Closing that
+    /// would mean handing the send to a queue rather than awaiting it here.
     /// </summary>
     public async Task ForgotPasswordAsync(string emailAddress, CancellationToken cancellationToken)
     {

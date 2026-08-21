@@ -44,9 +44,34 @@ public static class ValidationProblems
     private static Dictionary<string, string[]> CollectErrors(ModelStateDictionary modelState)
         => modelState
             .Where(entry => entry.Value?.Errors.Count > 0)
+            .GroupBy(entry => NameField(entry.Key))
             .ToDictionary(
-                entry => entry.Key,
-                entry => entry.Value!.Errors.Select(error => error.ErrorMessage).ToArray());
+                group => group.Key,
+                group => group
+                    .SelectMany(entry => entry.Value!.Errors.Select(error => Describe(entry.Key, error)))
+                    .Distinct()
+                    .ToArray());
+
+    /// <summary>
+    /// The field a rejected value belongs to. A body the reader could not parse is reported
+    /// against its JSON path, so the leading <c>$.</c> is dropped and the caller is told which
+    /// field it sent rather than where in the document the parser gave up.
+    /// </summary>
+    private static string NameField(string key)
+        => IsParseFailure(key) ? key[(key.LastIndexOf('.') + 1)..] : key;
+
+    /// <summary>
+    /// The message a caller sees. The parser explains a value it could not read in its own terms,
+    /// naming the CLR type it was aiming at and the byte it stopped on. Neither means anything to
+    /// whoever sent the request, and both describe the inside of the API, so they are replaced.
+    /// Everything the API checks itself already has a message written for a reader, and keeps it.
+    /// </summary>
+    private static string Describe(string key, ModelError error)
+        => IsParseFailure(key) || error.ErrorMessage.Length == 0
+            ? "The value is not in a form this field accepts."
+            : error.ErrorMessage;
+
+    private static bool IsParseFailure(string key) => key.StartsWith("$.", StringComparison.Ordinal);
 
     /// <summary>
     /// Writes through the problem details service, the same path unhandled failures take, so the
