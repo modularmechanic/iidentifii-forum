@@ -1,6 +1,7 @@
-using Forum.Application.Comments;
 using Forum.Application.Common.Models;
-using Forum.Application.Posts;
+using Forum.Application.Dtos;
+using Forum.Application.Queries;
+using Forum.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Forum.Api.Controllers;

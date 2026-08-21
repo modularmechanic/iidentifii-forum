@@ -1,10 +1,10 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Forum.Api.Contracts;
-using Forum.Application.Comments;
 using Forum.Application.Common.Models;
-using Forum.Application.Posts;
+using Forum.Application.Dtos;
+using Forum.Application.Queries;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace Forum.Api.Serialization;
 
@@ -19,6 +19,11 @@ namespace Forum.Api.Serialization;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(HealthResponse))]
+[JsonSerializable(typeof(RegisterRequest))]
+[JsonSerializable(typeof(VerifyEmailRequest))]
+[JsonSerializable(typeof(ResendVerificationRequest))]
+[JsonSerializable(typeof(AcknowledgementResponse))]
+[JsonSerializable(typeof(UserDto))]
 [JsonSerializable(typeof(PostDto))]
 [JsonSerializable(typeof(PostSort))]
 [JsonSerializable(typeof(SortOrder))]

@@ -1,8 +1,8 @@
-using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
 using Forum.Api.Contracts;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
+using System.Net;
 using Xunit;
 
 namespace Forum.Tests.Api;

@@ -1,8 +1,7 @@
-using System.ComponentModel.DataAnnotations;
 using Forum.Application.Common.Models;
-using Forum.Application.Posts;
+using System.ComponentModel.DataAnnotations;
 
-namespace Forum.Application.Comments;
+namespace Forum.Application.Queries;
 
 /// <summary>Which page of replies to return.</summary>
 public sealed record CommentQuery

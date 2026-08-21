@@ -1,4 +1,4 @@
-namespace Forum.Application.Posts;
+namespace Forum.Application.Queries;
 
 /// <summary>What the discussion list is ordered by.</summary>
 public enum PostSort

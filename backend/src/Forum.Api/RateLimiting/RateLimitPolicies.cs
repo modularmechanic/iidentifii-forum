@@ -1,7 +1,7 @@
-using System.Globalization;
-using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using System.Globalization;
+using System.Threading.RateLimiting;
 
 namespace Forum.Api.RateLimiting;
 

@@ -2,8 +2,8 @@ using Forum.Api.Errors;
 using Forum.Api.RateLimiting;
 using Forum.Api.Serialization;
 using Forum.Application;
-using Forum.Infrastructure;
 using Forum.Infrastructure.Persistence;
+using Forum.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;
 
@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddForumApplication();
+builder.Services.AddForumApplication(builder.Configuration);
 builder.Services.AddForumInfrastructure(builder.Configuration);
 
 // Payloads resolve through the source-generated context; see ForumJsonContext.
