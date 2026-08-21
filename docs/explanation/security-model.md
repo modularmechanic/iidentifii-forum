@@ -57,9 +57,11 @@ which is what anybody expects from a forum.
 
 The cost is that any script running on the page can read it. What limits that today is that the
 application loads no third-party scripts at all: everything it runs is built from this repository.
-A content security policy to enforce that is not in place yet — it belongs with the packaging work
-in #9, where the web container gains the headers. Until then the property holds by construction
-rather than by enforcement.
+A content security policy now enforces that rather than leaving it to convention: the web container
+answers every request with `script-src 'self'`, so a script the bundle did not ship cannot run at
+all, and the only hosts named as exceptions are the two Google Fonts serve styles and fonts from.
+The header is added by nginx, so it covers the built client; the development server serves no such
+header, and there the property still holds by construction.
 
 A cookie marked `HttpOnly` and `SameSite` would place the token out of reach of scripts entirely,
 at the price of a cross-site request forgery defence on every write and a sign-in flow that no
