@@ -48,29 +48,82 @@ Explain intent, not mechanics. A summary belongs on anything whose reason is not
 The conventions below are applied consistently across the client, so any file reads the same way
 as the last one.
 
-### Structure
+### Naming
 
-- `components/pages/` mirrors the routes; `components/common/ui/` holds shared elements.
-- `domains/` holds models, services and operations per subject area. Components never call the network directly: a container calls a service.
-- `infra/` holds the fetch wrapper and session handling.
+- Components are `PascalCase`, and the file is named after the component it holds: `PostsList.tsx`.
+- Files that are not components are `kebab-case`: `format-date.ts`, `setup-http.ts`.
+- A module that groups related functions is an object named after itself: `PostService.ts` exports
+  `PostService`.
+- A function that performs input or output is named `fetch*`. A function that only computes is
+  named `get*`. A function that answers yes or no is named `is*` or `has*`.
+- Booleans read as a statement: `isOpen`, `hasFilters`, not `open` or `filters`.
+- Constants that never change are `UPPER_SNAKE_CASE` at the top of the file.
+
+### File layout
+
+Every file is laid out in the same order, with a banner comment before each part that is present:
+
+```
+/***** Constants *****/   values that do not change
+/***** Types *****/       the props interface and anything local
+/***** Components *****/  the exported component first, its children below it
+/***** Functions *****/   helpers, prefixed with _ when private to the file
+/***** Export default *****/
+```
+
+Reading top to bottom therefore goes from what a file needs, to what it shows, to how it does it.
 
 ### Components
 
-- Function declarations, not arrow constants, so they hoist and read top-down.
-- Parent first, children below it in the same file. Default export at the bottom.
-- Props typed as an interface in the file's `Types` region and destructured in the body.
-- Containers hold data and state; presenters take props and render.
-- Static values live outside the component, otherwise they are rebuilt on every render.
+- Declared with `function`, not assigned as an arrow constant. Declarations hoist, so a parent can
+  be written above the children it uses, and they name themselves in a stack trace.
+- The parent component comes first; the smaller components it uses are declared beneath it in the
+  same file, so the file reads top-down.
+- No return type annotation: a component always returns what React can render, so stating it adds
+  nothing.
+- The default export sits at the bottom, and its comment starts `Default component:`.
+- No giant `return`. When a block of markup earns a name, it becomes a child component rather than
+  a variable holding markup.
+- Values that do not depend on props or state live outside the component. Inside, they would be
+  rebuilt on every render.
+- Arrow functions are for callbacks written inline in markup, and nothing else.
+
+### Props
+
+- Always typed, as an `interface` named `IProps` in the file's `Types` region. A child component's
+  props take its own name: `IRowProps`.
+- Taken as a single `props` parameter and destructured on the first line of the body, so the
+  signature stays short and every value has one obvious place it appears.
+
+### State and data
+
+- A container holds the data and the state; a presenter takes props and renders. A presenter can
+  be tested with nothing but an object.
+- Components never call the network. A container calls a service, and the service is the only
+  place that knows a URL exists.
+- State that belongs in the address bar lives in the address bar. Filters, ordering and the page
+  number are read from the query string, so a view can be shared and the back button works.
+- `useState` is fine for one or two values. Beyond that, the state is one object, so every part of
+  it changes together.
 
 ### Types
 
-- No `enum`: a constant object plus a derived union, which also satisfies the compiler settings this project uses.
-- `import type` for type-only imports.
-- `fetch*` names perform input and output; `get*` names do not; `is*` names return a predicate.
+- No `enum`. A constant object with `as const` and a union derived from it gives the same thing,
+  survives compilation to plain JavaScript, and the compiler settings this project uses forbid the
+  alternative.
+- `import type` for anything used only as a type, so the import disappears at build time.
+- Nothing is typed `any`. Where a type genuinely is not known, it is `unknown` and narrowed.
 
 ### Styling
 
-Tailwind utilities only. The palette lives in the theme block in `index.css`, so a colour is never hard-coded in a component.
+Tailwind utilities only. Colours come from the theme block in `index.css` and are referred to by
+role — `text-muted`, `border-line`, `bg-canvas` — so a colour is never written into a component and
+both light and dark follow from one place.
+
+### Formatting
+
+Single quotes in TypeScript, double quotes in markup attributes. The linter and formatter settle
+everything else; neither is argued with in review.
 
 ## Testing
 
