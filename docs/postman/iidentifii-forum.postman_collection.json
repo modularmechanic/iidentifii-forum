@@ -862,6 +862,7 @@
                   "pm.test('the message can be read', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json().Text || '';",
                   "pm.test('carries a confirmation link', () => pm.expect(body).to.include('verify-email?token='));",
+                  "if (!body.includes('token=')) { return; }",
                   "const link = body.match(/token=([A-Za-z0-9_%-]+)/);",
                   "pm.test('the link carries a token', () => pm.expect(link, 'the message has no confirmation link').to.not.be.null);",
                   "if (link) {",
@@ -1164,6 +1165,7 @@
                   "const messages = pm.response.json().messages;",
                   "const matching = messages.filter((m) => m.Subject === 'Your sign-in code');",
                   "pm.test('a message titled \"Your sign-in code\" arrived', () => pm.expect(matching.length).to.be.above(0));",
+                  "if (matching.length === 0) { return; }",
                   "// Mailpit lists newest first, so the first match is the one just sent.",
                   "pm.collectionVariables.set('messageId', matching[0].ID);"
                 ]
@@ -1199,6 +1201,7 @@
                   "const body = pm.response.json().Text;",
                   "const code = body.match(/\\b(\\d{6})\\b/);",
                   "pm.test('carries a six digit code', () => pm.expect(code).to.not.be.null);",
+                  "if (code === null) { return; }",
                   "pm.collectionVariables.set('signInCode', code[1]);"
                 ]
               }
@@ -1670,6 +1673,7 @@
                   "const messages = pm.response.json().messages;",
                   "const matching = messages.filter((m) => m.Subject === 'Reset your password');",
                   "pm.test('a message titled \"Reset your password\" arrived', () => pm.expect(matching.length).to.be.above(0));",
+                  "if (matching.length === 0) { return; }",
                   "// Mailpit lists newest first, so the first match is the one just sent.",
                   "pm.collectionVariables.set('messageId', matching[0].ID);"
                 ]
@@ -1704,6 +1708,7 @@
                   "pm.test('the message can be read', () => pm.response.to.have.status(200));",
                   "const body = pm.response.json().Text;",
                   "pm.test('carries a reset link', () => pm.expect(body).to.include('reset-password?token='));",
+                  "if (!body.includes('token=')) { return; }",
                   "const token = body.match(/token=([A-Za-z0-9_%-]+)/)[1];",
                   "pm.collectionVariables.set('resetToken', decodeURIComponent(token));"
                 ]

@@ -129,7 +129,11 @@ public sealed class PasswordResetTests(ApiFactory factory)
 
     private string CodeFor(string emailAddress)
     {
-        var body = factory.Emails.LastTo(emailAddress)?.PlainTextBody ?? string.Empty;
+        // Falling back to an empty string would let this test pass when no code was ever sent:
+        // the empty code is refused, the assertion sees a 401, and the behaviour goes unchecked.
+        var body = factory.Emails.LastTo(emailAddress)?.PlainTextBody
+            ?? throw new InvalidOperationException($"No code was sent to {emailAddress}.");
+
         return System.Text.RegularExpressions.Regex.Match(body, @"code is (\d{6})").Groups[1].Value;
     }
 

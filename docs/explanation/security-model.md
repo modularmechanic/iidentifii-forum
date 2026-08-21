@@ -89,7 +89,9 @@ The detail stays in the log, where the reader of the log is trusted and the call
 ## Limits
 
 Every `/auth/*` route sits behind a tighter rate limit than the rest of the API, and the whole API
-sits behind a per-address limit. Both answer 429 with `Retry-After`. Emails have their own
+sits behind a per-address limit. `GET /auth/me` is the one exception: it is exempt from both,
+because a page restoring a session calls it on every load. That exemption is wider than it needs
+to be — it reads the database, so it should carry the ordinary allowance rather than none. Both answer 429 with `Retry-After`. Emails have their own
 cooldown on top, so the limit on sending is not merely the limit on asking.
 
 Guessing is bounded separately from rate limiting: five wrong codes spend a sign-in challenge

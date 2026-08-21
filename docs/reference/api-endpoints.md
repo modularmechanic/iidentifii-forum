@@ -203,8 +203,14 @@ starts again from the password.
 
 `{ "email": "..." }`
 
-Always returns 202, whether or not the address belongs to an account, and applies its cooldown
-silently. Neither the status, the body nor the timing reveals who is registered.
+| Status | When |
+| --- | --- |
+| 202 | The request was well formed. Whether or not the address belongs to an account |
+| 400 | `email` is missing, or is not shaped like an address |
+
+The 400 is about the shape of the request, not about the account: a well-formed address always
+gets 202, and the cooldown is applied silently. Neither the status, the body nor the timing
+reveals who is registered.
 
 ### `POST /auth/reset-password`
 

@@ -15,6 +15,6 @@ export interface IAuthValue {
 
 /**
  * Held in its own file rather than beside the provider: a module that exports both a component and
- * something else loses fast refresh, and the linter says so.
+ * something else loses fast refresh.
  */
 export const AuthContext = createContext<IAuthValue | null>(null);
