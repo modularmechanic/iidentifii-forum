@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Forum.Application.Services;
 
 /// <summary>Reads and writes discussions. Rules that must always hold live on the entity.</summary>
-public sealed class PostService(IForumDbContext database)
+public sealed class PostService(IForumDbContext database, TimeProvider clock)
 {
     /// <summary>Returns one page of discussions, filtered and ordered as the query asks.</summary>
     public async Task<PagedResult<PostDto>> GetPageAsync(
@@ -41,6 +41,52 @@ public sealed class PostService(IForumDbContext database)
             .SingleOrDefaultAsync(cancellationToken);
 
         return post ?? throw NotFoundException.Discussion(id);
+    }
+
+    /// <summary>Starts a discussion and returns it as the reader will see it.</summary>
+    public async Task<PostDto> CreateAsync(
+        Guid authorId,
+        CreatePostRequest request,
+        CancellationToken cancellationToken)
+    {
+        var post = Post.Create(authorId, request.Title, request.Body, clock.GetUtcNow());
+
+        database.Posts.Add(post);
+        await database.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(post.Id, authorId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Records a like. The rules about liking your own discussion, or liking twice, live on the
+    /// entity; two requests arriving together are caught by the unique index instead.
+    /// </summary>
+    public async Task LikeAsync(Guid postId, Guid userId, CancellationToken cancellationToken)
+    {
+        var post = await database.Posts
+            .Include(candidate => candidate.Likes)
+            .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
+            ?? throw NotFoundException.Discussion(postId);
+
+        post.Like(userId, clock.GetUtcNow());
+
+        await database.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Removes a like, or reports that there was none to remove.</summary>
+    public async Task UnlikeAsync(Guid postId, Guid userId, CancellationToken cancellationToken)
+    {
+        var post = await database.Posts
+            .Include(candidate => candidate.Likes)
+            .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
+            ?? throw NotFoundException.Discussion(postId);
+
+        if (post.Unlike(userId) is null)
+        {
+            throw new NotFoundException("You have not liked this discussion.");
+        }
+
+        await database.SaveChangesAsync(cancellationToken);
     }
 
     private static IQueryable<Post> Filter(IQueryable<Post> posts, PostQuery query)
