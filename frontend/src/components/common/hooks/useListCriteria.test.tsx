@@ -47,6 +47,39 @@ describe('useListCriteria', () => {
     expect(result.current.criteria.tag).toBeUndefined();
   });
 
+  it('ignores a date that is not a real calendar date', () => {
+    const { result } = renderCriteria('/?from=not-a-date&to=2026-13-45');
+
+    expect(result.current.criteria.from).toBeUndefined();
+    expect(result.current.criteria.to).toBeUndefined();
+  });
+
+  it('drops a range that ends before it starts', () => {
+    const { result } = renderCriteria('/?from=2026-08-20&to=2026-08-01');
+
+    expect(result.current.criteria.from).toBeUndefined();
+    expect(result.current.criteria.to).toBeUndefined();
+    expect(result.current.hasFilters).toBe(false);
+  });
+
+  it('keeps a range that is the right way round', () => {
+    const { result } = renderCriteria('/?from=2026-08-01&to=2026-08-20');
+
+    expect(result.current.criteria).toMatchObject({ from: '2026-08-01', to: '2026-08-20' });
+  });
+
+  it('ignores an author name no account could have', () => {
+    const { result } = renderCriteria(`/?author=${'x'.repeat(33)}`);
+
+    expect(result.current.criteria.author).toBeUndefined();
+  });
+
+  it('ignores a page number beyond what the API accepts', () => {
+    const { result } = renderCriteria('/?page=2147483647');
+
+    expect(result.current.criteria.page).toBe(1);
+  });
+
   it('writes a change into the address so the view can be shared', () => {
     const { result } = renderCriteria();
 

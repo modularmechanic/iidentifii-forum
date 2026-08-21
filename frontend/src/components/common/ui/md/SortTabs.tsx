@@ -18,24 +18,27 @@ interface IProps {
 
 /***** Components *****/
 
-/** Default component: the three orderings people actually want, named rather than described. */
+/**
+ * Default component: the three orderings people actually want, named rather than described.
+ * A group of buttons rather than tabs, because choosing one reorders the list in place instead
+ * of revealing a different panel.
+ */
 function SortTabs(props: IProps) {
   const { sort, order, onChange } = props;
 
   return (
-    <div aria-label="Sort discussions" className="flex border-b border-line" role="tablist">
+    <div aria-label="Sort discussions" className="flex" role="group">
       {OPTIONS.map((option) => {
         const isSelected = option.sort === sort && option.order === order;
 
         return (
           <button
-            aria-selected={isSelected}
+            aria-pressed={isSelected}
             className={`-mb-px border-b-2 px-3 py-2 text-sm ${
               isSelected ? 'border-ink font-medium' : 'border-transparent text-muted hover:text-ink'
             }`}
             key={option.label}
             onClick={() => onChange(option.sort, option.order)}
-            role="tab"
             type="button"
           >
             {option.label}

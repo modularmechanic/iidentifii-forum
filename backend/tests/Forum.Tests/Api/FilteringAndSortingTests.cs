@@ -78,6 +78,30 @@ public sealed class FilteringAndSortingTests(ApiFactory factory)
         page.Items.Should().Contain(post => post.CreatedAt == newest);
     }
 
+    /// <summary>
+    /// The last representable day has no next day to bound against. Nothing can be later than it,
+    /// so the filter must simply match everything rather than failing.
+    /// </summary>
+    [Fact]
+    public async Task The_last_representable_day_is_a_usable_upper_bound()
+    {
+        var all = await GetPageAsync("?pageSize=100");
+
+        var page = await GetPageAsync("?to=9999-12-31&pageSize=100");
+
+        page.TotalCount.Should().Be(all.TotalCount);
+    }
+
+    [Fact]
+    public async Task The_first_representable_day_is_a_usable_lower_bound()
+    {
+        var all = await GetPageAsync("?pageSize=100");
+
+        var page = await GetPageAsync("?from=0001-01-01&pageSize=100");
+
+        page.TotalCount.Should().Be(all.TotalCount);
+    }
+
     [Theory]
     [InlineData("Descending")]
     [InlineData("Ascending")]

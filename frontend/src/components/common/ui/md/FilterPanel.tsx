@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { ModerationTagLabels, ModerationTags } from '@src/domains/posts/Post';
 import type { IListCriteria } from '@src/components/common/hooks/useListCriteria';
+
+/***** Constants *****/
+
+const FIELD_CLASS =
+  'rounded-sm border border-line bg-surface px-2 py-1.5 text-sm font-normal text-ink';
 
 /***** Types *****/
 
@@ -13,42 +18,16 @@ interface IProps {
 
 /***** Components *****/
 
-/** Default component: narrows the list by date, author or moderation flag. */
-function FilterBar(props: IProps) {
+/**
+ * Default component: narrows the list by date, author or moderation flag. The fields are applied
+ * together, so choosing three of them costs one request rather than three.
+ */
+function FilterPanel(props: IProps) {
   const { criteria, hasFilters, onApply, onClear } = props;
-
-  const [isOpen, setIsOpen] = useState(hasFilters);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-end gap-2">
-        <button
-          aria-expanded={isOpen}
-          className="rounded-sm border border-line px-3 py-1.5 text-sm"
-          onClick={() => setIsOpen((open) => !open)}
-          type="button"
-        >
-          Filters{hasFilters && <span className="ml-1 font-mono text-accent">on</span>}
-        </button>
-        {hasFilters && (
-          <button className="text-sm text-accent underline" onClick={onClear} type="button">
-            Clear
-          </button>
-        )}
-      </div>
-
-      {isOpen && <FilterFields criteria={criteria} onApply={onApply} />}
-    </div>
-  );
-}
-
-/** The fields themselves, submitted together so one change does not cost a request each. */
-function FilterFields(props: { criteria: IListCriteria; onApply: IProps['onApply'] }) {
-  const { criteria, onApply } = props;
 
   return (
     <form
-      className="grid gap-3 rounded-sm border border-line bg-subtle p-3 sm:grid-cols-2 lg:grid-cols-5"
+      className="grid gap-3 rounded-sm border border-line bg-subtle p-3 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
       onSubmit={(event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -84,12 +63,21 @@ function FilterFields(props: { criteria: IListCriteria; onApply: IProps['onApply
           </option>
         </select>
       </Field>
-      <div className="flex items-end">
+
+      <div className="flex items-end gap-2">
         <button
           className="rounded-sm bg-ink px-3 py-1.5 text-sm font-medium text-canvas"
           type="submit"
         >
           Apply
+        </button>
+        <button
+          className="rounded-sm border border-line px-3 py-1.5 text-sm disabled:opacity-40"
+          disabled={!hasFilters}
+          onClick={onClear}
+          type="button"
+        >
+          Clear
         </button>
       </div>
     </form>
@@ -97,20 +85,17 @@ function FilterFields(props: { criteria: IListCriteria; onApply: IProps['onApply
 }
 
 /** One labelled control. */
-function Field(props: { label: string; children: React.ReactNode }) {
+function Field(props: { label: string; children: ReactNode }) {
+  const { label, children } = props;
+
   return (
     <label className="flex flex-col gap-1 text-xs font-medium">
-      {props.label}
-      {props.children}
+      {label}
+      {children}
     </label>
   );
 }
 
-/***** Constants *****/
-
-const FIELD_CLASS =
-  'rounded-sm border border-line bg-surface px-2 py-1.5 text-sm font-normal text-ink';
-
 /***** Export default *****/
 
-export default FilterBar;
+export default FilterPanel;

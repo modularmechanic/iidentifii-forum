@@ -48,7 +48,9 @@ public sealed class PostService(IForumDbContext database)
             posts = posts.Where(post => post.CreatedAt >= start);
         }
 
-        if (query.To is { } to)
+        // The last representable day has no next day to bound against, and nothing can be later
+        // than it, so the filter would exclude nothing anyway.
+        if (query.To is { } to && to < DateOnly.MaxValue)
         {
             // Exclusive upper bound on the next day, so the whole of "to" is included.
             var endExclusive = to.AddDays(1).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);

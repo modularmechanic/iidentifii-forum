@@ -59,7 +59,7 @@ repeats or skips a discussion when several share a like count.
 | Status | When |
 | --- | --- |
 | 200 | Always, even when no discussion matches |
-| 400 | Paging outside its bounds, a range that ends before it starts, or an unrecognised `sort`, `order`, `tag` or date |
+| 400 | Paging outside its bounds, a range that ends before it starts, an `author` longer than 32 characters, or an unrecognised `sort`, `order`, `tag` or date |
 
 ### `GET /posts/{id}`
 

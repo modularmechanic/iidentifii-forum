@@ -17,6 +17,11 @@ const DEFAULTS = {
   order: SortOrders.Descending,
 } as const;
 
+/** Mirrors the API's own bounds, so the address cannot ask for something it would refuse. */
+const MAX_PAGE = 21_474_836;
+const MAX_USERNAME_LENGTH = 32;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 /***** Types *****/
 
 export interface IListCriteria {
@@ -38,18 +43,24 @@ export interface IListCriteria {
 export function useListCriteria() {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const criteria = useMemo<IListCriteria>(
-    () => ({
+  const criteria = useMemo<IListCriteria>(() => {
+    const from = _readDate(searchParams.get('from'));
+    const to = _readDate(searchParams.get('to'));
+
+    // A range that ends before it starts would be refused by the API, so it is dropped here
+    // rather than sent and reported back as an error the reader did not cause.
+    const isRangeUsable = from === undefined || to === undefined || from <= to;
+
+    return {
       page: _readPage(searchParams.get('page')),
       sort: _readOneOf(searchParams.get('sort'), PostSorts, DEFAULTS.sort),
       order: _readOneOf(searchParams.get('order'), SortOrders, DEFAULTS.order),
-      from: searchParams.get('from') ?? undefined,
-      to: searchParams.get('to') ?? undefined,
-      author: searchParams.get('author') ?? undefined,
+      from: isRangeUsable ? from : undefined,
+      to: isRangeUsable ? to : undefined,
+      author: _readAuthor(searchParams.get('author')),
       tag: _readOneOf(searchParams.get('tag'), ModerationTags, undefined),
-    }),
-    [searchParams],
-  );
+    };
+  }, [searchParams]);
 
   /** Applies a change, dropping anything left at its default so the address stays readable. */
   const update = useCallback(
@@ -84,10 +95,28 @@ export function useListCriteria() {
   return { criteria, update, clear, hasFilters };
 }
 
-/** Falls back to the first page when the address holds something that is not a page number. */
+/** Falls back to the first page when the address holds anything the API would not accept. */
 function _readPage(value: string | null): number {
   const page = Number(value);
-  return Number.isInteger(page) && page > 0 ? page : DEFAULTS.page;
+  return Number.isInteger(page) && page > 0 && page <= MAX_PAGE ? page : DEFAULTS.page;
+}
+
+/** Accepts a real calendar date written as YYYY-MM-DD, and nothing else. */
+function _readDate(value: string | null): string | undefined {
+  if (value === null || !ISO_DATE.test(value)) {
+    return undefined;
+  }
+
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(parsed.getTime()) || !parsed.toISOString().startsWith(value)
+    ? undefined
+    : value;
+}
+
+/** Ignores a name no account could have. */
+function _readAuthor(value: string | null): string | undefined {
+  const author = value?.trim();
+  return author && author.length <= MAX_USERNAME_LENGTH ? author : undefined;
 }
 
 /** Accepts a value only when the API would recognise it, so a stray address cannot break a fetch. */

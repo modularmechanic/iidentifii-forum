@@ -7,15 +7,15 @@ describe('SortTabs', () => {
   it('marks the ordering currently in use', () => {
     render(<SortTabs onChange={vi.fn()} order="Descending" sort="LikeCount" />);
 
-    expect(screen.getByRole('tab', { name: 'Top', selected: true })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Latest' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('button', { name: 'Top', pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Latest' })).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('reports both the field and the direction when chosen', async () => {
     const onChange = vi.fn();
     render(<SortTabs onChange={onChange} order="Descending" sort="CreatedAt" />);
 
-    await userEvent.click(screen.getByRole('tab', { name: 'Oldest' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Oldest' }));
 
     expect(onChange).toHaveBeenCalledWith('CreatedAt', 'Ascending');
   });

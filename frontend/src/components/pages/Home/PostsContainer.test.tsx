@@ -60,6 +60,45 @@ describe('PostsContainer', () => {
     );
   });
 
+  it('opens the filter panel already on when the address carries filters', async () => {
+    vi.spyOn(PostService, 'fetchPage').mockResolvedValue(buildPage());
+
+    renderWithProviders(<PostsContainer />, '/?author=bob');
+
+    expect(
+      await screen.findByRole('switch', { name: 'Filters', checked: true }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Author')).toHaveValue('bob');
+  });
+
+  it('turning the filter switch off removes the filters as well as the panel', async () => {
+    const fetchPage = vi.spyOn(PostService, 'fetchPage').mockResolvedValue(buildPage());
+
+    renderWithProviders(<PostsContainer />, '/?author=bob');
+    await screen.findByRole('switch', { name: 'Filters' });
+
+    await userEvent.click(screen.getByRole('switch', { name: 'Filters' }));
+
+    expect(screen.queryByLabelText('Author')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetchPage).toHaveBeenLastCalledWith(expect.objectContaining({ author: undefined })),
+    );
+  });
+
+  it('clearing empties the fields as well as the filters', async () => {
+    const fetchPage = vi.spyOn(PostService, 'fetchPage').mockResolvedValue(buildPage());
+
+    renderWithProviders(<PostsContainer />, '/?author=bob');
+    await screen.findByDisplayValue('bob');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear' }));
+
+    expect(screen.getByLabelText('Author')).toHaveValue('');
+    await waitFor(() =>
+      expect(fetchPage).toHaveBeenLastCalledWith(expect.objectContaining({ author: undefined })),
+    );
+  });
+
   it('offers a retry when the request fails', async () => {
     const fetchPage = vi.spyOn(PostService, 'fetchPage').mockRejectedValue(new Error('offline'));
 

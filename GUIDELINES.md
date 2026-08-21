@@ -45,7 +45,8 @@ Explain intent, not mechanics. A summary belongs on anything whose reason is not
 
 ## Frontend (React, TypeScript)
 
-The conventions follow [seanpmaxwell/Typescript-Best-Practices](https://github.com/seanpmaxwell/Typescript-Best-Practices) and [seanpmaxwell/React-Ts-Best-Practices](https://github.com/seanpmaxwell/React-Ts-Best-Practices), applied as written so the codebase reads consistently.
+The conventions below are applied consistently across the client, so any file reads the same way
+as the last one.
 
 ### Structure
 

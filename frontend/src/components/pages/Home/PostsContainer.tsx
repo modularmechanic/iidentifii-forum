@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import ErrorMessage from '@src/components/common/ui/sm/ErrorMessage';
 import Spinner from '@src/components/common/ui/sm/Spinner';
-import FilterBar from '@src/components/common/ui/md/FilterBar';
+import Switch from '@src/components/common/ui/sm/Switch';
+import FilterPanel from '@src/components/common/ui/md/FilterPanel';
 import Pagination from '@src/components/common/ui/md/Pagination';
 import SortTabs from '@src/components/common/ui/md/SortTabs';
 import { useListCriteria } from '@src/components/common/hooks/useListCriteria';
@@ -18,6 +20,9 @@ const PAGE_SIZE = 10;
 function PostsContainer() {
   const { criteria, update, clear, hasFilters } = useListCriteria();
 
+  // Filters that are already applied are shown, so a reader can see what narrowed the list.
+  const [isFiltering, setIsFiltering] = useState(hasFilters);
+
   const query = useQuery({
     queryKey: ['posts', { ...criteria, pageSize: PAGE_SIZE }],
     queryFn: () => PostService.fetchPage({ ...criteria, pageSize: PAGE_SIZE }),
@@ -27,12 +32,38 @@ function PostsContainer() {
 
   return (
     <div className="flex flex-col gap-3">
-      <SortTabs
-        onChange={(sort, order) => update({ sort, order })}
-        order={criteria.order}
-        sort={criteria.sort}
-      />
-      <FilterBar criteria={criteria} hasFilters={hasFilters} onApply={update} onClear={clear} />
+      <div className="flex items-end justify-between gap-3 border-b border-line">
+        <SortTabs
+          onChange={(sort, order) => update({ sort, order })}
+          order={criteria.order}
+          sort={criteria.sort}
+        />
+        <Switch
+          isOn={isFiltering}
+          label="Filters"
+          onChange={(isOn) => {
+            setIsFiltering(isOn);
+
+            // Turning the switch off removes the filters as well as the panel: leaving a
+            // narrowed list behind a hidden control is how people lose track of what they see.
+            if (!isOn && hasFilters) {
+              clear();
+            }
+          }}
+        />
+      </div>
+
+      {isFiltering && (
+        <FilterPanel
+          // Remounted when the criteria change, so the fields follow the address rather than
+          // holding what was typed before Clear.
+          key={`${criteria.from}|${criteria.to}|${criteria.author}|${criteria.tag}`}
+          criteria={criteria}
+          hasFilters={hasFilters}
+          onApply={update}
+          onClear={clear}
+        />
+      )}
 
       <Results
         errorMessage={query.isError ? _describeError(query.error) : undefined}
