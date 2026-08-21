@@ -14,6 +14,22 @@ export const ModerationTagLabels: Record<ModerationTag, string> = {
   [ModerationTags.MisleadingOrFalse]: 'Misleading or false',
 };
 
+/** How the list is ordered. */
+export const PostSorts = {
+  CreatedAt: 'CreatedAt',
+  LikeCount: 'LikeCount',
+} as const;
+
+export type PostSort = (typeof PostSorts)[keyof typeof PostSorts];
+
+/** Which end of the ordering comes first. */
+export const SortOrders = {
+  Ascending: 'Ascending',
+  Descending: 'Descending',
+} as const;
+
+export type SortOrder = (typeof SortOrders)[keyof typeof SortOrders];
+
 /***** Types *****/
 
 export interface IModerationTag {

@@ -1,8 +1,10 @@
-import { useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import ErrorMessage from '@src/components/common/ui/sm/ErrorMessage';
 import Spinner from '@src/components/common/ui/sm/Spinner';
+import FilterBar from '@src/components/common/ui/md/FilterBar';
 import Pagination from '@src/components/common/ui/md/Pagination';
+import SortTabs from '@src/components/common/ui/md/SortTabs';
+import { useListCriteria } from '@src/components/common/hooks/useListCriteria';
 import PostService from '@src/domains/posts/PostService';
 import PostsList from './PostsList';
 
@@ -12,18 +14,48 @@ const PAGE_SIZE = 10;
 
 /***** Components *****/
 
-/** Default component: fetches a page of discussions and hands it to the list. */
+/** Default component: fetches the discussions the address asks for and hands them to the list. */
 function PostsContainer() {
-  const [page, setPage] = useState(1);
+  const { criteria, update, clear, hasFilters } = useListCriteria();
 
   const query = useQuery({
-    queryKey: ['posts', { page, pageSize: PAGE_SIZE }],
-    queryFn: () => PostService.fetchPage({ page, pageSize: PAGE_SIZE }),
+    queryKey: ['posts', { ...criteria, pageSize: PAGE_SIZE }],
+    queryFn: () => PostService.fetchPage({ ...criteria, pageSize: PAGE_SIZE }),
     // Keeping the previous page on screen avoids a flash of nothing while the next one loads.
     placeholderData: keepPreviousData,
   });
 
-  if (query.isPending) {
+  return (
+    <div className="flex flex-col gap-3">
+      <SortTabs
+        onChange={(sort, order) => update({ sort, order })}
+        order={criteria.order}
+        sort={criteria.sort}
+      />
+      <FilterBar criteria={criteria} hasFilters={hasFilters} onApply={update} onClear={clear} />
+
+      <Results
+        errorMessage={query.isError ? _describeError(query.error) : undefined}
+        isPending={query.isPending}
+        onRetry={() => void query.refetch()}
+        result={query.data}
+        onPage={(page) => update({ page })}
+      />
+    </div>
+  );
+}
+
+/** Whichever of loading, failure or content applies right now. */
+function Results(props: {
+  isPending: boolean;
+  errorMessage?: string;
+  result?: Awaited<ReturnType<typeof PostService.fetchPage>>;
+  onRetry: () => void;
+  onPage: (page: number) => void;
+}) {
+  const { isPending, errorMessage, result, onRetry, onPage } = props;
+
+  if (isPending) {
     return (
       <div className="rounded-sm border border-line p-4">
         <Spinner label="Loading discussions" />
@@ -31,35 +63,36 @@ function PostsContainer() {
     );
   }
 
-  if (query.isError) {
+  if (errorMessage !== undefined || result === undefined) {
     return (
-      <ErrorMessage
-        message="Could not load discussions. Is the API running?"
-        onRetry={() => void query.refetch()}
-      />
+      <ErrorMessage message={errorMessage ?? 'Could not load discussions.'} onRetry={onRetry} />
     );
   }
 
-  const result = query.data;
-
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-baseline justify-between pb-2">
-        <h2 className="font-medium">Latest</h2>
-        <p className="font-mono text-xs text-muted tabular-nums">
-          {result.totalCount} {result.totalCount === 1 ? 'discussion' : 'discussions'}
-        </p>
-      </div>
+    <>
+      <p className="font-mono text-xs text-muted tabular-nums">
+        {result.totalCount} {result.totalCount === 1 ? 'discussion' : 'discussions'}
+      </p>
       <PostsList posts={result.items} />
       <Pagination
         hasNext={result.hasNext}
         hasPrevious={result.hasPrevious}
-        onChange={setPage}
+        onChange={onPage}
         page={result.page}
         totalPages={result.totalPages}
       />
-    </div>
+    </>
   );
+}
+
+/***** Functions *****/
+
+/** A rejected filter deserves a different message from an unreachable API. */
+function _describeError(error: unknown): string {
+  return error instanceof Error && error.message
+    ? error.message
+    : 'Could not load discussions. Is the API running?';
 }
 
 /***** Export default *****/
