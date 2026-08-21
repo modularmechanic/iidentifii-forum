@@ -81,8 +81,14 @@ internal sealed class SignedInMembers(ApiFactory factory, HttpClient client)
             .ReadFromJsonAsync<LoginChallengeResponse>(TestJson.Options);
 
         var body = factory.Emails.LastTo(account.Email)?.PlainTextBody
-            ?? throw new InvalidOperationException($"No code was sent to {account.Email}.");
-        var code = Regex.Match(body, @"code is (\d{6})").Groups[1].Value;
+            ?? throw new InvalidOperationException($"No message was sent to {account.Email}.");
+
+        // A message without a code would otherwise yield an empty one, and every test built on
+        // this helper would go on to fail somewhere far less obvious than here.
+        var match = Regex.Match(body, @"code is (\d{6})");
+        var code = match.Success
+            ? match.Groups[1].Value
+            : throw new InvalidOperationException($"The message to {account.Email} carried no code.");
 
         var sessionResponse = await client.PostAsJsonAsync(
             "/api/v1/auth/verify-2fa",
