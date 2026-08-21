@@ -75,6 +75,14 @@ public sealed class Post
         }
     }
 
+    /// <summary>Adds a reply, keeping the discussion and its replies consistent together.</summary>
+    public Comment Reply(Guid authorId, string body, DateTimeOffset now)
+    {
+        var comment = Comment.Create(Id, authorId, body, now);
+        _comments.Add(comment);
+        return comment;
+    }
+
     /// <summary>
     /// Records a like. Nobody likes their own discussion, and nobody likes the same one twice.
     /// </summary>

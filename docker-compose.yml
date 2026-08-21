@@ -8,7 +8,8 @@ services:
       POSTGRES_USER: forum
       POSTGRES_PASSWORD: forum
     ports:
-      - "127.0.0.1:5432:5432"
+      # Published high to avoid colliding with a PostgreSQL already installed on the host.
+      - "127.0.0.1:55432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:

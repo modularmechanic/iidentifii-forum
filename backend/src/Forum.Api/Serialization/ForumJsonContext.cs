@@ -1,6 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Forum.Api.Contracts;
+using Forum.Application.Comments;
+using Forum.Application.Common.Models;
+using Forum.Application.Posts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Forum.Api.Serialization;
@@ -16,6 +19,10 @@ namespace Forum.Api.Serialization;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(HealthResponse))]
+[JsonSerializable(typeof(PostDto))]
+[JsonSerializable(typeof(PagedResult<PostDto>))]
+[JsonSerializable(typeof(CommentDto))]
+[JsonSerializable(typeof(PagedResult<CommentDto>))]
 [JsonSerializable(typeof(ProblemDetails))]
 [JsonSerializable(typeof(ValidationProblemDetails))]
 [JsonSerializable(typeof(IDictionary<string, object?>))]

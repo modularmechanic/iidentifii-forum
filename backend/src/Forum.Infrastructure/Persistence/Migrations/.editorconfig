@@ -1,0 +1,7 @@
+# Migrations are written by the Entity Framework tools. They are reviewed and kept in source
+# control, but they are not hand-formatted, so project style rules do not apply here.
+[*.cs]
+generated_code = true
+dotnet_diagnostic.IDE0161.severity = none
+dotnet_diagnostic.IDE0300.severity = none
+dotnet_diagnostic.IDE0090.severity = none

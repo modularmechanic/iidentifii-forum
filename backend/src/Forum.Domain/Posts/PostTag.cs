@@ -1,3 +1,5 @@
+using Forum.Domain.Users;
+
 namespace Forum.Domain.Posts;
 
 /// <summary>A moderation mark applied to a discussion, and who applied it.</summary>
@@ -12,6 +14,8 @@ public sealed class PostTag
     public ModerationTag Tag { get; private set; }
 
     public Guid TaggedByUserId { get; private set; }
+
+    public User TaggedByUser { get; private set; } = null!;
 
     public DateTimeOffset CreatedAt { get; private set; }
 
