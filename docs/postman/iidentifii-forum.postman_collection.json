@@ -818,9 +818,11 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('the message arrived', () => pm.response.to.have.status(200));",
-                  "const messages = pm.response.json().messages;",
-                  "pm.test('one message for this address', () => pm.expect(messages.length).to.be.above(0));",
-                  "pm.collectionVariables.set('messageId', messages[0].ID);"
+                  "const messages = pm.response.json().messages || [];",
+                  "pm.test('one message for this address', () => pm.expect(messages.length, 'Mailpit holds no message for this address').to.be.above(0));",
+                  "if (messages.length > 0) {",
+                  "    pm.collectionVariables.set('messageId', messages[0].ID);",
+                  "}"
                 ]
               }
             }
@@ -858,10 +860,13 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('the message can be read', () => pm.response.to.have.status(200));",
-                  "const body = pm.response.json().Text;",
+                  "const body = pm.response.json().Text || '';",
                   "pm.test('carries a confirmation link', () => pm.expect(body).to.include('verify-email?token='));",
-                  "const token = body.match(/token=([A-Za-z0-9_%-]+)/)[1];",
-                  "pm.collectionVariables.set('verificationToken', decodeURIComponent(token));"
+                  "const link = body.match(/token=([A-Za-z0-9_%-]+)/);",
+                  "pm.test('the link carries a token', () => pm.expect(link, 'the message has no confirmation link').to.not.be.null);",
+                  "if (link) {",
+                  "    pm.collectionVariables.set('verificationToken', decodeURIComponent(link[1]));",
+                  "}"
                 ]
               }
             }
@@ -1489,10 +1494,21 @@
                 "register"
               ]
             },
-            "description": "Uniqueness is enforced by the database, not by reading first."
+            "description": "Uniqueness is enforced by the database, not by reading first. The name it clashes with is the one the Accounts folder registered, so that folder has to have run."
           },
           "response": [],
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('newUsername')) {",
+                  "    throw new Error('Run the Accounts folder first: it registers the name this request expects to clash with.');",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
