@@ -82,9 +82,11 @@ jobs:
     name: Verify
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    # Runs even when a suite fails, so the gate reports a failure rather than being skipped:
-    # a skipped check satisfies a protection rule, a failed one does not.
-    if: always()
+    # Runs even when a suite fails, so the gate reports a failure rather than being skipped: a
+    # skipped check satisfies a protection rule, a failed one does not. It steps aside only when
+    # the run itself was cancelled, which means a newer push superseded it — reporting failure
+    # there would leave a red gate on work that was simply replaced.
+    if: always() && !cancelled()
     steps:
       - name: Require both suites to have passed
         env:
@@ -93,6 +95,13 @@ jobs:
         run: |
           echo "Backend: $BACKEND"
           echo "Frontend: $FRONTEND"
+          for result in "$BACKEND" "$FRONTEND"; do
+            if [ "$result" = "cancelled" ]; then
+              echo "A suite was cancelled, so this run was superseded. The newer run decides."
+              exit 0
+            fi
+          done
+
           if [ "$BACKEND" != "success" ] || [ "$FRONTEND" != "success" ]; then
             echo "::error::main takes green branches only."
             exit 1
