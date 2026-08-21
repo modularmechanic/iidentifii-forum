@@ -78,3 +78,13 @@ returns 429 with `Retry-After`.
 
 The address a person's browser uses, which is not always where the API listens. Confirmation and
 reset links are built from it.
+
+The web build needs the same address, for the canonical link and for the preview a shared link
+produces. It reads `VITE_SITE_URL`, so set it alongside `App:PublicUrl` when deploying:
+
+```bash
+VITE_SITE_URL=https://forum.example.com npm run build --prefix frontend
+```
+
+Left unset, it falls back to the development server's address, which `frontend/vite.config.ts`
+holds.

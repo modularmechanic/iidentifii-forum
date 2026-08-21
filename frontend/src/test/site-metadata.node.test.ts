@@ -21,6 +21,14 @@ describe('page metadata', () => {
       expect(INDEX_HTML).toContain(`property="${property}"`);
     }
     expect(INDEX_HTML).toContain('name="twitter:card"');
+    expect(INDEX_HTML).toContain('property="og:locale" content="en_US"');
+  });
+
+  /** A crawler told the site lives on a development machine cannot reach any of it. */
+  it('takes the public address from configuration rather than naming one', () => {
+    expect(INDEX_HTML).toContain('href="%VITE_SITE_URL%/"');
+    expect(INDEX_HTML).toContain('content="%VITE_SITE_URL%/"');
+    expect(INDEX_HTML).not.toMatch(/localhost/);
   });
 
   it('carries a colour for both themes', () => {
@@ -41,6 +49,12 @@ describe('robots.txt', () => {
       expect(ROBOTS).toContain(`Disallow: ${path}`);
     }
   });
+
+  /** Nothing generates a sitemap, and no absolute address here would survive a deployment. */
+  it('points at no sitemap and at no particular host', () => {
+    expect(ROBOTS).not.toMatch(/Sitemap:/);
+    expect(ROBOTS).not.toMatch(/https?:\/\//);
+  });
 });
 
 describe('llms.txt', () => {
@@ -48,6 +62,12 @@ describe('llms.txt', () => {
     expect(LLMS).toMatch(/^# iiDENTIFii Forum/);
     expect(LLMS).toContain('/api/v1');
     expect(LLMS).toContain('api-endpoints.md');
+  });
+
+  /** The site serves nothing under /docs/, so a link there would answer 404. */
+  it('links documentation where it can actually be read', () => {
+    expect(LLMS).not.toMatch(/\]\(\/docs\//);
+    expect(LLMS).toMatch(/\]\(https:\/\//);
   });
 
   it('warns that content is written by members and may be flagged', () => {

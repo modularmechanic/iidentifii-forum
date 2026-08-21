@@ -10,8 +10,8 @@ API to scraping these pages.
 
 ## API
 
-- [Endpoint reference](/docs/reference/api-endpoints.md): every endpoint, its parameters and what
-  it returns when something goes wrong.
+- [Endpoint reference](https://github.com/modularmechanic/iidentifii-forum/blob/main/docs/reference/api-endpoints.md):
+  every endpoint, its parameters and what it returns when something goes wrong.
 - Base path: `/api/v1`. Responses are JSON; failures are RFC 7807 problem documents.
 - `GET /api/v1/posts` lists discussions, with paging, date, author and moderation-flag filters, and
   ordering by date or by number of likes.
@@ -21,11 +21,18 @@ API to scraping these pages.
 
 ## Documentation
 
-- [Documentation index](/docs/README.md): arranged by what the reader is trying to do.
-- [Browsing](/docs/features/browsing.md): how reading the forum works.
-- [Filtering and sorting](/docs/features/filtering-and-sorting.md): how to narrow and order the list.
-- [Accounts](/docs/features/accounts.md): registration and email confirmation.
-- [Data model](/docs/reference/data-model.md): what is stored and how it relates.
+The forum does not serve these pages; they are read where they are kept, in the repository.
+
+- [Documentation index](https://github.com/modularmechanic/iidentifii-forum/blob/main/docs/README.md):
+  arranged by what the reader is trying to do.
+- [Browsing](https://github.com/modularmechanic/iidentifii-forum/blob/main/docs/features/browsing.md):
+  how reading the forum works.
+- [Filtering and sorting](https://github.com/modularmechanic/iidentifii-forum/blob/main/docs/features/filtering-and-sorting.md):
+  how to narrow and order the list.
+- [Accounts](https://github.com/modularmechanic/iidentifii-forum/blob/main/docs/features/accounts.md):
+  registration and email confirmation.
+- [Data model](https://github.com/modularmechanic/iidentifii-forum/blob/main/docs/reference/data-model.md):
+  what is stored and how it relates.
 
 ## Notes for automated readers
 
