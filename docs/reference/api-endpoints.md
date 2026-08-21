@@ -167,6 +167,46 @@ No body.
 | 401 | No session |
 | 404 | No discussion has that identifier, or you had not liked it |
 
+## Moderation and ownership
+
+Every endpoint here needs a session. A member who is not permitted gets 403, not 404: the
+discussion exists, and pretending otherwise would be a different lie.
+
+### `POST /posts/{id}/tags`
+
+`{ "tag": "MisleadingOrFalse" }`. Moderators only.
+
+| Status | When |
+| --- | --- |
+| 201 | The flag was applied |
+| 400 | The tag is not one the forum recognises |
+| 403 | The caller is not a moderator |
+| 404 | No discussion has that identifier |
+| 409 | It already carries that flag |
+
+### `DELETE /posts/{id}/tags/{tag}`
+
+Moderators only. 204 when removed, 404 when it was not there, 403 for anybody else.
+
+### `PUT /posts/{id}`
+
+`{ "title": "...", "body": "..." }`. The author only. Returns the discussion with `updatedAt` set.
+
+| Status | When |
+| --- | --- |
+| 200 | Saved |
+| 400 | The title or body is empty, or too long |
+| 403 | The caller did not write it. A moderator is refused here too |
+| 404 | No discussion has that identifier |
+
+### `DELETE /posts/{id}`
+
+The author only. 204, and the replies, likes and flags go with it by cascade.
+
+### `PUT /comments/{id}` and `DELETE /comments/{id}`
+
+`{ "body": "..." }` for the edit. The author of the reply only; 200 or 204, 403 for anybody else.
+
 ## Signing in
 
 ### `POST /auth/login`

@@ -4,6 +4,8 @@ import { useLike } from '@src/components/common/hooks/useLike';
 import { getShortDate } from '@src/common/utils/format-date';
 import type { IPost } from '@src/domains/posts/Post';
 import FlagBanner from './FlagBanner';
+import ModeratorTools from './ModeratorTools';
+import OwnerActions from './OwnerActions';
 import ReplyComposer from './ReplyComposer';
 
 /***** Types *****/
@@ -38,6 +40,9 @@ function Discussion(props: IProps) {
       <FlagBanner tags={post.tags} />
 
       <div className="max-w-prose text-sm whitespace-pre-line">{post.body}</div>
+
+      <OwnerActions post={post} />
+      <ModeratorTools post={post} />
 
       <div className="flex flex-col gap-4 border-t border-line pt-4">
         <div className="flex items-center gap-3">

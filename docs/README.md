@@ -30,6 +30,7 @@ What you'll get: a map of the documentation, arranged by what you are trying to 
 | [Accounts](features/accounts.md) | Registering and confirming an email address |
 | [Signing in](features/signing-in.md) | Password, emailed code, and resetting a forgotten password |
 | [Contributing content](features/contributing-content.md) | Posting, replying and liking |
+| [Moderation and ownership](features/moderation.md) | Flagging, editing and deleting |
 
 ## Explanation
 
