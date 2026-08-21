@@ -59,10 +59,20 @@ function CodeInput(props: IProps) {
               event.preventDefault();
 
               const next = [...digits];
-              next[index] = '';
-              onChange(next);
 
+              // Clearing a box the reader is standing in should not also move them off it; only
+              // an already-empty box hands the cursor back to the one before.
+              if (digits[index]) {
+                next[index] = '';
+                onChange(next);
+                return;
+              }
+
+              next[Math.max(index - 1, 0)] = '';
+              onChange(next);
               _focus(boxes.current, Math.max(index - 1, 0));
+
+              return;
             }
 
             if (event.key === 'ArrowLeft') {

@@ -61,6 +61,8 @@ function ReplyActions(props: IProps) {
           Edit your reply
         </label>
         <textarea
+          // The Edit button has just been replaced by this form, so the cursor follows it in.
+          autoFocus
           className="min-h-24 rounded-sm border border-line bg-surface px-2 py-1.5 text-sm text-ink"
           id={`edit-${reply.id}`}
           maxLength={2_000}
@@ -82,14 +84,16 @@ function ReplyActions(props: IProps) {
           >
             Cancel
           </button>
-          {save.isError && <span className="text-xs text-danger">Could not save that.</span>}
+          {save.isError && (
+            <span className="text-xs text-danger">Could not save the reply. Try again.</span>
+          )}
         </div>
       </form>
     );
   }
 
   return (
-    <div className="mt-2 flex items-center gap-2 text-xs">
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
       <button
         className="text-muted underline underline-offset-2 hover:text-ink"
         onClick={() => setDraft(reply.body)}
@@ -102,14 +106,19 @@ function ReplyActions(props: IProps) {
 
       {isConfirming ? (
         <>
-          <span className="text-muted">Delete this reply?</span>
+          <span className="text-muted" role="alert">
+            Delete this reply?
+          </span>
           <button
+            // The button that was under the cursor has just been replaced, so the answer takes
+            // the focus rather than dropping it at the top of the page.
+            autoFocus
             className="text-danger underline underline-offset-2 disabled:opacity-60"
             disabled={remove.isPending}
             onClick={() => remove.mutate()}
             type="button"
           >
-            Yes
+            {remove.isPending ? 'Deleting…' : 'Yes, delete'}
           </button>
           <button
             className="text-muted underline underline-offset-2"

@@ -39,3 +39,12 @@
 body {
   @apply bg-canvas text-ink font-sans antialiased;
 }
+
+/*
+ * One focus ring for every control. The browser's own is a hairline drawn on the element's edge,
+ * which disappears against the dark buttons and against the dark theme's canvas, so keyboard use
+ * becomes invisible exactly where it matters most.
+ */
+:focus-visible {
+  @apply outline-accent outline-2 outline-offset-2;
+}

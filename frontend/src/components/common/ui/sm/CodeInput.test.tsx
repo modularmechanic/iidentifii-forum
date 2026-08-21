@@ -59,6 +59,43 @@ describe('CodeInput', () => {
     expect(screen.getByRole('status')).toHaveTextContent('948480');
   });
 
+  /** Six boxes read as one field, so the arrow keys have to cross between them. */
+  it('moves between the boxes with the arrow keys', async () => {
+    render(<Harness />);
+    const boxes = screen.getAllByRole('textbox');
+
+    boxes[0].focus();
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+    expect(boxes[2]).toHaveFocus();
+
+    await userEvent.keyboard('{ArrowLeft}');
+    expect(boxes[1]).toHaveFocus();
+
+    await userEvent.keyboard('{End}');
+    expect(boxes[5]).toHaveFocus();
+
+    await userEvent.keyboard('{Home}');
+    expect(boxes[0]).toHaveFocus();
+  });
+
+  /** Backspace used to leave the box it cleared, so correcting one digit lost the cursor. */
+  it('clears the digit under the cursor before it moves back', async () => {
+    render(<Harness />);
+    const boxes = screen.getAllByRole('textbox');
+
+    boxes[0].focus();
+    await userEvent.paste('948480');
+
+    boxes[3].focus();
+    await userEvent.keyboard('{Backspace}');
+    expect(boxes[3]).toHaveFocus();
+    expect(boxes[3]).toHaveValue('');
+
+    await userEvent.keyboard('{Backspace}');
+    expect(boxes[2]).toHaveFocus();
+    expect(boxes[2]).toHaveValue('');
+  });
+
   it('ignores anything that is not a digit', async () => {
     render(<Harness />);
     const boxes = screen.getAllByRole('textbox');

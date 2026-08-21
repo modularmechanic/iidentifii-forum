@@ -50,7 +50,7 @@ function OwnerActions(props: IProps) {
     <div className="flex flex-col gap-2">
       {remove.isError && <Banner tone="error">Could not delete the discussion. Try again.</Banner>}
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link
           className="rounded-sm border border-line px-3 py-1.5 text-sm"
           to={Paths.editDiscussion(post.id)}
@@ -60,8 +60,13 @@ function OwnerActions(props: IProps) {
 
         {isConfirming ? (
           <>
-            <span className="text-sm text-muted">Delete this and its replies?</span>
+            <span className="text-sm text-muted" role="alert">
+              Delete this and its replies?
+            </span>
             <button
+              // The button that was under the cursor has just been replaced, so the answer takes
+              // the focus rather than dropping it at the top of the page.
+              autoFocus
               className="rounded-sm border border-danger px-3 py-1.5 text-sm text-danger disabled:opacity-60"
               disabled={remove.isPending}
               onClick={() => remove.mutate()}

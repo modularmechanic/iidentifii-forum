@@ -54,8 +54,8 @@ function CheckInbox() {
           {resend.isPending ? 'Sending…' : 'Send it again'}
         </button>
         {secondsLeft > 0 && (
-          <span aria-live="polite" className="font-mono text-xs text-muted tabular-nums">
-            available in {secondsLeft}s
+          <span className="font-mono text-xs text-muted tabular-nums">
+            Available in {secondsLeft}s
           </span>
         )}
       </div>
