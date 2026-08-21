@@ -1,5 +1,6 @@
 using Forum.Application.Common.Interfaces;
 using Forum.Domain.Users;
+using Forum.Infrastructure.Auth;
 using Forum.Infrastructure.Email;
 using Forum.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -25,6 +26,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
         services.AddScoped<DbSeeder>();
+        services.AddScoped<ITokenService, JwtTokenService>();
 
         services.AddOptions<EmailOptions>()
             .Bind(configuration.GetSection(EmailOptions.SectionName))

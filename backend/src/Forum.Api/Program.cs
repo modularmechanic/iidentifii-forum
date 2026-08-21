@@ -1,3 +1,5 @@
+using Forum.Api.Configuration;
+using Forum.Api.Auth;
 using Forum.Api.Errors;
 using Forum.Api.RateLimiting;
 using Forum.Api.Serialization;
@@ -9,10 +11,14 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Development runs without secrets in the repository; it makes its own for the run.
+builder.AddDevelopmentSecrets();
+
 builder.Services.AddControllers();
 
 builder.Services.AddForumApplication(builder.Configuration);
 builder.Services.AddForumInfrastructure(builder.Configuration);
+builder.Services.AddForumAuthentication(builder.Configuration);
 
 // Payloads resolve through the source-generated context; see ForumJsonContext.
 builder.Services.ConfigureHttpJsonOptions(options =>
@@ -44,6 +50,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference(options => options.WithTitle("iiDENTIFii Forum API"));
 }
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

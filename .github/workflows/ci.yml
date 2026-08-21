@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Every pull request, whatever it is based on. A slice too large for one review is opened on
+  # top of the one before it, and a branch nobody checks is exactly the branch that breaks main.
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
@@ -81,8 +82,10 @@ jobs:
     name: Verify
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    # Runs even when a suite fails, so the gate reports a failure rather than being skipped:
-    # a skipped check satisfies a protection rule, a failed one does not.
+    # Runs whatever the suites did, including when the run is cancelled. A skipped check counts
+    # as a pass against a protection rule, so stepping aside on cancellation would let anyone
+    # open the gate by cancelling the run. A superseded run does briefly show red; the run that
+    # replaced it reports under the same name and settles it.
     if: always()
     steps:
       - name: Require both suites to have passed
