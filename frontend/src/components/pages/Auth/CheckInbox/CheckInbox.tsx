@@ -17,10 +17,13 @@ function CheckInbox() {
   const [searchParams] = useSearchParams();
   const email = searchParams.get('email') ?? '';
 
-  const secondsLeft = useCountdown(COOLDOWN_SECONDS);
+  const [secondsLeft, restartCooldown] = useCountdown(COOLDOWN_SECONDS);
 
   const resend = useMutation({
     mutationFn: () => UserService.resendVerification(email),
+    // The API keeps its own cooldown and answers the same either way, so without starting the wait
+    // again the button would reopen after one resend and every press after it would send nothing.
+    onSuccess: restartCooldown,
   });
 
   return (
@@ -71,10 +74,10 @@ function CheckInbox() {
 /***** Functions *****/
 
 /**
- * Counts down to zero. The wait matches the one the API keeps, so the button is only offered
- * when pressing it would actually send something.
+ * Counts down to zero, and hands back the means to start again. The wait matches the one the API
+ * keeps, so the button is only offered when pressing it would actually send something.
  */
-function useCountdown(seconds: number): number {
+function useCountdown(seconds: number): [number, () => void] {
   const [remaining, setRemaining] = useState(seconds);
 
   useEffect(() => {
@@ -86,7 +89,7 @@ function useCountdown(seconds: number): number {
     return () => clearTimeout(timer);
   }, [remaining]);
 
-  return remaining;
+  return [remaining, () => setRemaining(seconds)];
 }
 
 /***** Export default *****/
