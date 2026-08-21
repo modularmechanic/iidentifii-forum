@@ -18,9 +18,11 @@ public sealed class UserTokenConfiguration : IEntityTypeConfiguration<UserToken>
             .HasForeignKey(token => token.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Looking up the newest token for one purpose is the read pattern behind redemption,
-        // the cooldown check and retirement alike.
+        // The read pattern behind the cooldown check and retirement alike.
         builder.HasIndex(token => new { token.UserId, token.Purpose });
+
+        // Redemption has only the secret the emailed link carries, so that way in is indexed too.
+        builder.HasIndex(token => token.SecretHash);
 
         // At most one token per purpose may be outstanding. Issuing retires the previous one first,
         // so this only ever refuses a second request racing the first, which is the point of it.
