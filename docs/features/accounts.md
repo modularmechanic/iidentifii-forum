@@ -30,7 +30,7 @@ Following the emailed link confirms the address:
 
 | Method | Path | Returns |
 | --- | --- | --- |
-| POST | `/api/v1/auth/register` | 201, and sends a confirmation link |
+| POST | `/api/v1/auth/register` | 201, and sends a confirmation link; 409 when the username or the address is already taken |
 | POST | `/api/v1/auth/verify-email` | 200 when the link is good, 400 when it is not |
 | POST | `/api/v1/auth/resend-verification` | 202, always |
 
@@ -63,17 +63,22 @@ the same: a username nobody holds and a wrong password give one message, and the
 either way so the two take about as long as each other.
 
 **Registration is the exception, deliberately.** A duplicate address is refused with 409 rather
-than accepted in silence, so somebody who already has an account is told so instead of waiting for
-an email that never comes. That does let a caller test whether an address is registered, one
-address at a time and inside the account rate limit. Closing it means answering 201 either way and
-emailing the existing holder to say somebody tried; that is a change to what registration means,
-not a correction, so it is recorded here rather than made quietly. See
-[Known limitations](#known-limitations).
+than accepted in silence, and the refusal says what to do next: sign in, or ask for a new password.
+Almost everyone who registers an address that already has an account has forgotten the account
+rather than found somebody else's, and a silent 201 sends them off to wait for an email that never
+comes, then on to a second address. The two clashes are told apart by the unique index that refused
+the write, so a duplicate username asks for another name instead.
 
-**Silence is in the answer, not in the timing.** The same reply either way covers what the body
-says. It does not cover how long the reply takes: a known address waits for the mail server, an
-unknown one returns at once, and the difference is measurable. Closing that means handing the send
-to a queue instead of awaiting it in the request.
+That does let a caller test whether an address is registered, one address at a time and inside the
+account rate limit. It is the only endpoint that will answer the question, and it is recorded under
+[Known limitations](#known-limitations) rather than left unnoticed.
+
+![The registration form refusing an address that already has an account, with links to sign in or reset the password](../screenshots/register-address-taken.png)
+
+**Silence is in the answer and in the timing.** The same reply either way covers what the body
+says. It would not cover how long the reply takes — a known address waits for the mail server, an
+unknown one returns at once — so sending is handed to a queue and happens after the response, and
+both come back at the same speed.
 
 **Rate limits are configurable.** Ten requests a minute for account routes and a hundred and twenty
 for everything else, both settable per deployment. A refusal carries `Retry-After`, so a caller
@@ -85,10 +90,9 @@ not confirm twice, and does not lose the answer.
 
 ## Known limitations
 
-- **Registering tells a caller whether an address is already in use.** The 409 above. Rate limited,
-  and traded knowingly for a signup that says what went wrong.
-- **The silent recovery endpoints answer at different speeds.** The body says nothing either way;
-  the time it takes does. It needs a queue to close, not a copy change.
+- **Registering tells a caller whether an address is already in use.** The 409 above, traded
+  knowingly for a signup that says what went wrong and where to go next. It is rate limited with
+  every other `/auth` route. Every other endpoint taking an address stays silent.
 - **Turning email off is a development affordance.** See below.
 
 ## Reading the email locally

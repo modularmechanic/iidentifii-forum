@@ -270,6 +270,30 @@ public sealed class ContentTests(ApiFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    [Fact]
+    public async Task Liking_a_popular_discussion_does_not_read_every_like_it_already_has()
+    {
+        var author = await _members.CreateAsync();
+        var post = await StartDiscussionAsync(author, "Popular", "Plenty of people liked this.");
+
+        // Ten admirers before ours.
+        for (var i = 0; i < 10; i++)
+        {
+            var admirer = await _members.CreateAsync();
+            (await LikeAsync(admirer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        var newcomer = await _members.CreateAsync();
+        (await LikeAsync(newcomer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var fetched = await _client.GetFromJsonAsync<PostDto>($"/api/v1/posts/{post.Id}", TestJson.Options);
+        fetched!.LikeCount.Should().Be(11);
+
+        // Liking twice is still refused, which is what proves the rule survived reading only the
+        // caller's own like rather than all of them.
+        (await LikeAsync(newcomer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
     private async Task<PostDto> StartDiscussionAsync(Member member, string title, string body)
     {
         using var request = member.Request(

@@ -46,9 +46,17 @@ public sealed class AuthService(
         {
             await database.SaveChangesAsync(cancellationToken);
         }
+        catch (ConflictException conflict) when (IsEmailTaken(conflict))
+        {
+            // Somebody registering an address they already hold has almost always forgotten the
+            // account rather than found somebody else's, so the answer says what to do next.
+            throw new ConflictException(
+                "An account already exists for that email address. Sign in, or reset your "
+                + "password if you have forgotten it.");
+        }
         catch (ConflictException)
         {
-            throw new ConflictException("That username or email address is already registered.");
+            throw new ConflictException("That username is already taken.");
         }
 
         await SendVerificationAsync(user, cancellationToken);
@@ -304,6 +312,10 @@ public sealed class AuthService(
 
         return $"{emailAddress[0]}{new string('*', Math.Min(at - 1, 4))}{emailAddress[at..]}";
     }
+
+    /// <summary>Which of the two unique columns refused the write, so each can say its own piece.</summary>
+    private static bool IsEmailTaken(ConflictException conflict)
+        => conflict.ConstraintName?.Contains("Email", StringComparison.OrdinalIgnoreCase) == true;
 
     private async Task SendVerificationAsync(User user, CancellationToken cancellationToken)
     {

@@ -95,11 +95,18 @@ function Register() {
           {register.isPending ? 'Creating your account…' : 'Create account'}
         </button>
 
+        {/* The API refuses an address that already has an account and says to sign in or ask for
+            a new password, so both ways forward are one click from the refusal. */}
         <p className="text-center text-sm text-muted">
           Already a member?{' '}
           <Link className="text-accent underline" to={Paths.Login}>
             Log in
+          </Link>{' '}
+          or{' '}
+          <Link className="text-accent underline" to={Paths.ForgotPassword}>
+            reset your password
           </Link>
+          .
         </p>
       </form>
     </AuthCard>

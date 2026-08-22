@@ -84,9 +84,12 @@ and waiting for a mail server is long enough to measure, which would have given 
 however carefully the response was worded. Delivery is therefore handed to a queue and happens
 after the response, so both answers are returned at the same speed.
 
-Registration is the deliberate exception: a taken *username* returns 409, because the person
-typing it has to pick a different one. Usernames are shown on every post anyway, so nothing is
-disclosed that browsing does not already show. Addresses are never shown.
+Registration is the deliberate exception. Both a taken *username* and a taken *address* return 409,
+and the address says so plainly enough to act on: sign in, or reset the password. Someone
+registering an address they already hold has nearly always forgotten the account, and answering
+them with the same "check your inbox" as a new account sends them round the loop again. The cost is
+that registration can be used to test whether an address is registered; it is rate limited with the
+rest of `/auth`, and it is the only endpoint that answers the question.
 
 **Which half of a sign-in was wrong.** An unknown username and a wrong password return the same
 401 and the same wording. A hash is verified even when no account matches, so the two cannot be

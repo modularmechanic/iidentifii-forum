@@ -36,9 +36,9 @@ public sealed class ForumDbContext(DbContextOptions<ForumDbContext> options)
             return await base.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateException exception)
-            when (exception.InnerException is PostgresException { SqlState: UniqueViolation })
+            when (exception.InnerException is PostgresException { SqlState: UniqueViolation } postgres)
         {
-            throw new ConflictException("That item already exists.", exception);
+            throw new ConflictException("That item already exists.", postgres.ConstraintName, exception);
         }
     }
 

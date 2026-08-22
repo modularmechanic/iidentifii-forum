@@ -24,7 +24,7 @@ Three files live in [`docs/postman/`](../postman/):
 
 | File | What it is |
 | --- | --- |
-| `iidentifii-forum.postman_collection.json` | 82 requests in eight folders, one per feature |
+| `iidentifii-forum.postman_collection.json` | 89 requests in eight folders, one per feature |
 | `containers.postman_environment.json` | For `docker compose up`: API on 5080 |
 | `local.postman_environment.json` | For `dotnet run`: API on 5000 |
 
