@@ -34,11 +34,10 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Sample content is a development affordance: the accounts share a published password. The
-// environment is checked here as well as inside, so the intent is visible at the call site.
+// Sample content is a development affordance: the accounts share a published password. Only the
+// request is passed here; database initialisation refuses it outside Development and logs why.
 await app.InitialiseDatabaseAsync(
-    seed: app.Environment.IsDevelopment()
-        && builder.Configuration.GetValue("Database:SeedOnStartup", defaultValue: false));
+    seed: builder.Configuration.GetValue("Database:SeedOnStartup", defaultValue: false));
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();

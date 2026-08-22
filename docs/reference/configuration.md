@@ -31,10 +31,9 @@ The migration is applied on every start, whatever the environment. That suits on
 fleet would apply migrations as a separate step instead.
 
 Seeding needs **both** `Database:SeedOnStartup` and the Development environment, because every
-seeded account shares one published password. The two are combined at the call site in
-`Program.cs`, so setting the flag in Production seeds nothing — and says nothing about having
-skipped it. `InitialiseDatabaseAsync` carries a second guard that logs the refusal, but nothing in
-the running application reaches it; a test calls the method directly to exercise it.
+seeded account shares one published password. `Program.cs` passes the setting on and
+`InitialiseDatabaseAsync` decides, so setting the flag anywhere else seeds nothing and logs a
+warning naming the environment — an operator who left it on can read why the content is missing.
 
 ## Where the forum is reachable
 
