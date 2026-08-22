@@ -7,6 +7,10 @@ The client talks to the API at `/api/v1` and never to the database. In developme
 proxies that path (and `/health`) to `http://localhost:5000`, so the browser only ever sees one
 origin. Start the API first, otherwise the interface loads and reports that the API is unreachable.
 
+Built and containerised, nginx does the same job: `Dockerfile` builds the bundle and serves it,
+and `nginx.conf` forwards `/api` and `/health` to the API on the compose network and adds the
+security headers, including the content security policy.
+
 ## Commands
 
 ```bash

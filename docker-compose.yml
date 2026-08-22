@@ -34,5 +34,47 @@ services:
       timeout: 3s
       retries: 10
 
+  api:
+    build:
+      context: ./backend
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    environment:
+      # Development, because seeding and the Scalar reference are both gated on it. A deployment
+      # carrying real accounts runs Production and seeds nothing.
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Forum: "Host=db;Port=5432;Database=forum;Username=forum;Password=forum"
+      Database__SeedOnStartup: "true"
+      # Where a person's browser reaches the forum, which is what the emailed links must point at.
+      App__PublicUrl: "http://localhost:8080"
+      Email__Host: mailpit
+      Email__Port: 1025
+      # Both are refused at startup if shorter than 32 characters. The fallbacks are the published
+      # development values; override them by exporting the two variables before bringing the
+      # stack up. See docs/reference/configuration.md.
+      Jwt__SigningKey: "${FORUM_JWT_SIGNING_KEY:-development-only-signing-key-not-for-any-real-deployment}"
+      Tokens__Pepper: "${FORUM_TOKEN_PEPPER:-development-only-pepper-not-for-any-real-deployment}"
+    ports:
+      # Published so an API client can reach the API without going through the web container.
+      - "127.0.0.1:5080:8080"
+
+  web:
+    build:
+      context: ./frontend
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8080:80"
+    healthcheck:
+      # Goes through the same proxy the browser uses, so this turns green only once nginx can
+      # reach the API as well.
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
 volumes:
   db-data:

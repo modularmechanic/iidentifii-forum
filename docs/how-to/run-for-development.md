@@ -3,6 +3,10 @@
 Who this is for: anyone who wants the forum running on their own machine.
 What you'll get: the API, the web client and their dependencies, all running locally.
 
+This is the path for changing the code: both applications run from source, with hot reload on the
+client. To run the whole thing in containers instead — one command, no SDKs — follow
+[the tutorial](../tutorials/01-run-the-forum-and-log-in-with-2fa.md).
+
 ## Before you start
 
 - Docker Desktop, running
