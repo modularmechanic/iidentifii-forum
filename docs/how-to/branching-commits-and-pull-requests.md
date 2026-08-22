@@ -25,7 +25,7 @@ Nothing is committed to `main`. Every change reaches it through a pull request.
 
 ## Commit as you go
 
-```
+```text
 type(scope): what changed
 
 - each change, one line

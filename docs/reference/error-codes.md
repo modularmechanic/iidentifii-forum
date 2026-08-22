@@ -129,6 +129,7 @@ configurable; see [configuration](configuration.md).
 
 ```json
 {
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.6.1",
   "title": "An unexpected error occurred.",
   "status": 500,
   "detail": "The request could not be completed. Quote the trace identifier when reporting this.",

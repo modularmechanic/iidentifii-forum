@@ -63,7 +63,7 @@ as the last one.
 
 Every file is laid out in the same order, with a banner comment before each part that is present:
 
-```
+```text
 /***** Constants *****/   values that do not change
 /***** Types *****/       the props interface and anything local
 /***** Components *****/  the exported component first, its children below it

@@ -57,11 +57,13 @@ which is what anybody expects from a forum.
 
 The cost is that any script running on the page can read it. What limits that today is that the
 application loads no third-party scripts at all: everything it runs is built from this repository.
-A content security policy now enforces that rather than leaving it to convention: the web container
-answers every request with `script-src 'self'`, so a script the bundle did not ship cannot run at
-all, and the only hosts named as exceptions are the two Google Fonts serve styles and fonts from.
-The header is added by nginx, so it covers the built client; the development server serves no such
-header, and there the property still holds by construction.
+The web container answers every request with `script-src 'self'`, which narrows where a script may
+come from to this origin, and names only the two hosts Google Fonts serves styles and fonts from.
+
+That is defence in depth, not a guarantee. A policy about *origins* says nothing about what a
+script already running on this origin may do, so anything that managed to get itself served from
+here could still read the token. The header is added by nginx and so covers the built client; the
+development server sends no such header.
 
 A cookie marked `HttpOnly` and `SameSite` would place the token out of reach of scripts entirely,
 at the price of a cross-site request forgery defence on every write and a sign-in flow that no

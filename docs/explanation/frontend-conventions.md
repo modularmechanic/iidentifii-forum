@@ -10,7 +10,7 @@ longer way than you would have chosen alone.
 
 ## Every file has the same skeleton
 
-```
+```text
 /***** Constants *****/   values that do not change
 /***** Types *****/       the props interface and anything local
 /***** Components *****/  the exported component first, its children below it

@@ -25,7 +25,7 @@ without an inbox.
 
 Every one of them uses the password:
 
-```
+```text
 Password123!
 ```
 

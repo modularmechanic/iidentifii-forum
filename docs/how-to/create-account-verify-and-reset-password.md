@@ -78,8 +78,11 @@ afterwards. A session token already issued is *not* revoked; the reason is in
 | The link is refused | It has expired, been used, or been retired by a newer one |
 | The password step returns "confirm your email address" | The address on the account is not confirmed yet |
 
-With no mail server at all, set `Email:Enabled` to `false` and every message is written to the API
-log instead, link included. See [configuration](../reference/configuration.md).
+With no mail server at all, set `Email:Enabled` to `false`. In Development the whole message is
+written to the API log, link included, which is the point of running without one. Anywhere else
+only the recipient and the subject are logged: a confirmation link or a sign-in code is exactly
+what a log should not carry, and turning email off to quieten a broken mail server should not be
+the way one gets there. See [configuration](../reference/configuration.md).
 
 ## Testing accounts you did not create
 

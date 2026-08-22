@@ -110,9 +110,10 @@ members do not have: marking it **misleading or false**.
 Flag one, then sign out. The flag is on the discussion for every reader, and the list can be
 filtered down to flagged discussions.
 
-A moderator can flag, and only that. The interface offers `mod` no way to edit somebody else's
-discussion, and asking the API directly is refused with 403 — exactly as it refuses any other
-member.
+A moderator can also take the flag off again: the same control reads **Remove the flag** once one
+is applied. What a moderator cannot do is write. The interface offers `mod` no way to edit somebody
+else's discussion, and asking the API directly is refused with 403 — exactly as it refuses any
+other member.
 
 ## 7. Stop, and start over
 

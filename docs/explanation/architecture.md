@@ -128,7 +128,7 @@ database on the way.
 | A mediator library | Four projects and a handful of services do not need one; see [decisions and trade-offs](decisions-and-trade-offs.md) |
 | A repository layer over Entity Framework | `DbContext` is already one, and an interface over it would only make the same calls harder to read |
 | A caching layer | Nothing measured is slow |
-| A message queue | The one asynchronous thing is email, and it is sent inline |
+| A message queue of its own | Email is queued in process: `IEmailSender` accepts a message, `EmailDispatcher` delivers it later through `IEmailTransport`. Nothing external is involved, and nothing survives a restart |
 | Horizontal scaling | Migrations run at startup and rate limits are held in memory, both of which assume one instance |
 
 ## Related

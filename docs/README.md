@@ -4,7 +4,8 @@ Who this is for: anyone running, extending or testing the forum.
 What you'll get: a map of the documentation, arranged by what you are trying to do.
 
 New here? Start with the [tutorial](tutorials/01-run-the-forum-and-log-in-with-2fa.md): the whole
-forum in one command, and a signed-in session five minutes later.
+forum in one command, and a signed-in session about ten minutes later — most of which is the first
+image build. It is quicker every time after that.
 
 Presenting it? [The walkthrough](walkthrough.md) has a demonstration order and answers to the
 questions the design invites.
