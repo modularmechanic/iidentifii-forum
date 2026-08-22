@@ -52,6 +52,19 @@ describe('OwnerActions', () => {
     await waitFor(() => expect(remove).toHaveBeenCalledWith(buildPost().id));
   });
 
+  it('hands focus back to Delete when the author changes their mind', async () => {
+    signInAs('bob', AUTHOR_ID);
+
+    renderWithProviders(<OwnerActions post={buildPost()} />);
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+
+    // Answering the question replaces the control that asked it; without returning the focus it
+    // would be left on nothing, and a keyboard reader would start again from the top.
+    expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus();
+  });
+
   it('lets the author change their mind', async () => {
     signInAs('bob', AUTHOR_ID);
     const remove = vi.spyOn(PostService, 'remove').mockResolvedValue();

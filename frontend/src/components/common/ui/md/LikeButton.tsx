@@ -25,7 +25,7 @@ function LikeButton(props: IProps) {
     <button
       // The label states the whole control, because it replaces the text inside rather than
       // adding to it: without the count and the reason here, neither is ever announced.
-      aria-label={`${disabledReason ?? action}. ${count} ${count === 1 ? 'like' : 'likes'}`}
+      aria-label={`${_asSentence(disabledReason ?? action)} ${count} ${count === 1 ? 'like' : 'likes'}`}
       aria-pressed={isLiked}
       className={`inline-flex w-12 shrink-0 flex-col items-center gap-0.5 self-center rounded-sm py-1 ${
         isLiked ? 'text-accent' : 'text-muted'
@@ -48,6 +48,13 @@ function LikeButton(props: IProps) {
       <span className="font-mono text-sm tabular-nums">{count}</span>
     </button>
   );
+}
+
+/***** Functions *****/
+
+/** Ends the phrase with a single full stop, whether or not it arrived with one. */
+function _asSentence(phrase: string): string {
+  return phrase.endsWith('.') ? phrase : `${phrase}.`;
 }
 
 /***** Export default *****/

@@ -17,7 +17,7 @@ namespace Forum.Infrastructure.Email;
 /// </remarks>
 public sealed class LogEmailSender(
     IHostEnvironment environment,
-    ILogger<LogEmailSender> logger) : IEmailSender
+    ILogger<LogEmailSender> logger) : IEmailTransport
 {
     public Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
     {

@@ -9,7 +9,7 @@ namespace Forum.Infrastructure.Email;
 
 /// <summary>Hands a message to an SMTP server. Locally that is Mailpit, which keeps it for reading.</summary>
 public sealed class SmtpEmailSender(IOptions<EmailOptions> options, ILogger<SmtpEmailSender> logger)
-    : IEmailSender
+    : IEmailTransport
 {
     private readonly EmailOptions _options = options.Value;
 

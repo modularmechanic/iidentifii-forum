@@ -87,10 +87,21 @@ async function _toHttpError(response: Response): Promise<HttpError> {
     const problem = (await response.json()) as IProblemDetails;
     return new HttpError(
       response.status,
-      problem.detail ?? problem.title ?? '',
+      _firstNonEmpty(problem.detail, problem.title, response.statusText),
       problem.errors ?? {},
     );
   } catch {
-    return new HttpError(response.status, '');
+    return new HttpError(response.status, _firstNonEmpty(response.statusText));
   }
+}
+
+/**
+ * The first of these that actually says something. A failure with no detail used to produce an
+ * empty message, which a page would then render as a banner with nothing written in it.
+ */
+function _firstNonEmpty(...candidates: (string | undefined)[]): string {
+  return (
+    candidates.find((candidate) => candidate !== undefined && candidate.trim() !== '') ??
+    'The request was refused, and the reason was not given.'
+  );
 }

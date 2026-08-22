@@ -181,7 +181,7 @@ discussion exists, and pretending otherwise would be a different lie.
 | 201 | The flag was applied |
 | 400 | The tag is not one the forum recognises |
 | 403 | The caller is not a moderator |
-| 404 | No discussion has that identifier |
+| 404 | No discussion has that identifier, or the signed-in member no longer exists |
 | 409 | It already carries that flag |
 
 ### `DELETE /posts/{id}/tags/{tag}`

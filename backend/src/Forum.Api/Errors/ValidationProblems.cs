@@ -71,7 +71,16 @@ public static class ValidationProblems
             ? "The value is not in a form this field accepts."
             : error.ErrorMessage;
 
-    private static bool IsParseFailure(string key) => key.StartsWith("$.", StringComparison.Ordinal);
+    /// <summary>
+    /// True when the key names a place in the JSON rather than a field of the request. A failure
+    /// against a property is keyed "$.name"; one against the document itself is keyed "$" or
+    /// nothing at all, and its message is the parser's, which is not for the caller to read.
+    /// </summary>
+    private static bool IsParseFailure(string key)
+        => key.Length == 0
+            || key.Equals("$", StringComparison.Ordinal)
+            || key.StartsWith("$.", StringComparison.Ordinal)
+            || key.StartsWith("$[", StringComparison.Ordinal);
 
     /// <summary>
     /// Writes through the problem details service, the same path unhandled failures take, so the

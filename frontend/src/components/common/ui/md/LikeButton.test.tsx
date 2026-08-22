@@ -52,6 +52,22 @@ describe('LikeButton', () => {
     expect(onToggle).not.toHaveBeenCalled();
   });
 
+  it('does not double up the full stop in what a screen reader hears', () => {
+    render(
+      <LikeButton
+        count={1}
+        disabledReason="You cannot like your own discussion"
+        isLiked={false}
+        isPending={false}
+        onToggle={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'You cannot like your own discussion. 1 like' }),
+    ).toBeInTheDocument();
+  });
+
   it('cannot be pressed twice while a change is in flight', () => {
     render(<LikeButton count={3} isLiked={false} isPending onToggle={vi.fn()} />);
 

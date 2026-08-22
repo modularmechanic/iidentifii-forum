@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 import Banner from '@src/components/common/ui/sm/Banner';
@@ -27,6 +27,23 @@ function OwnerActions(props: IProps) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isConfirming, setIsConfirming] = useState(false);
+
+  // Asking the question replaces the button that was pressed. Answering "Keep it" replaces it
+  // back, and without this the focus would be left on nothing at all.
+  const deleteButton = useRef<HTMLButtonElement>(null);
+
+  // A ref rather than state: nothing renders differently because of it, and it only needs to
+  // survive until the effect below reads it.
+  const isReturningFocus = useRef(false);
+
+  // After the commit, not during it: the button being focused is only in the document once the
+  // question has been replaced by it.
+  useEffect(() => {
+    if (!isConfirming && isReturningFocus.current) {
+      isReturningFocus.current = false;
+      deleteButton.current?.focus();
+    }
+  }, [isConfirming]);
 
   const remove = useMutation({
     mutationFn: () => PostService.remove(post.id),
@@ -76,7 +93,10 @@ function OwnerActions(props: IProps) {
             </button>
             <button
               className="rounded-sm border border-line px-3 py-1.5 text-sm"
-              onClick={() => setIsConfirming(false)}
+              onClick={() => {
+                isReturningFocus.current = true;
+                setIsConfirming(false);
+              }}
               type="button"
             >
               Keep it
@@ -86,6 +106,7 @@ function OwnerActions(props: IProps) {
           <button
             className="rounded-sm border border-line px-3 py-1.5 text-sm text-danger"
             onClick={() => setIsConfirming(true)}
+            ref={deleteButton}
             type="button"
           >
             Delete

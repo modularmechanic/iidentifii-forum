@@ -82,7 +82,9 @@ function EditDiscussion() {
 function _describeError(error: unknown): string {
   if (error instanceof HttpError) {
     const firstField = Object.values(error.fieldErrors)[0]?.[0];
-    return firstField ?? error.message;
+    const described = firstField ?? error.message;
+
+    return described.trim() === '' ? 'Could not save the changes. Try again.' : described;
   }
 
   return 'Could not save the changes. Try again.';
