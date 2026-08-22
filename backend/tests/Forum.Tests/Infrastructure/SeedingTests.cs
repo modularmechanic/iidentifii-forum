@@ -84,7 +84,7 @@ public sealed class SeedingTests : IAsyncLifetime
         var usernames = await verification.Users.Select(user => user.Username).ToListAsync();
         var titles = await verification.Posts.Select(post => post.Title).ToListAsync();
 
-        log.Messages.Should().Contain(message => message.Contains("seeded the database first"),
+        log.Entries.Should().Contain(entry => entry.Message.Contains("seeded the database first"),
             "the losing instance must take the conflict path this test exists to cover");
         usernames.Should().NotBeEmpty().And.OnlyHaveUniqueItems();
         titles.Should().NotBeEmpty().And.OnlyHaveUniqueItems();
@@ -120,19 +120,45 @@ public sealed class SeedingTests : IAsyncLifetime
     {
         var log = new RecordingLogger();
 
-        await using (var api = new Api(_database.GetConnectionString(), environmentName, log))
+        await using (var api = new Api(
+            _database.GetConnectionString(), environmentName, seedOnStartup: true, log))
         {
-            // The host is built on first use, and starting it runs database initialisation.
+            // The host is built on first use, and starting it runs database initialisation. The
+            // connection is read back because an empty table only means a refusal if the host was
+            // looking at this test's database rather than the one in appsettings.json.
+            using var scope = api.Services.CreateScope();
+            scope.ServiceProvider.GetRequiredService<ForumDbContext>().Database.GetConnectionString()
+                .Should().Be(_database.GetConnectionString());
+        }
+
+        await using var context = CreateContext();
+        (await context.Users.CountAsync()).Should().Be(0);
+        log.Entries.Should().Contain(
+            entry => entry.Level == LogLevel.Warning
+                && entry.Message.Contains("Seeding was requested but refused")
+                && entry.Message.Contains(environmentName),
+            "an operator who asks for seeding needs to read why it did not happen");
+    }
+
+    /// <summary>
+    /// The warning reports a refusal, so leaving the switch off — the normal case everywhere but
+    /// a developer's machine — has nothing to report and must stay quiet.
+    /// </summary>
+    [Fact]
+    public async Task Seeding_nobody_asked_for_is_not_reported()
+    {
+        var log = new RecordingLogger();
+
+        await using (var api = new Api(
+            _database.GetConnectionString(), "Production", seedOnStartup: false, log))
+        {
             using var scope = api.Services.CreateScope();
             _ = scope.ServiceProvider.GetRequiredService<ForumDbContext>();
         }
 
         await using var context = CreateContext();
         (await context.Users.CountAsync()).Should().Be(0);
-        log.Messages.Should().Contain(
-            message => message.Contains("Seeding was requested but refused")
-                && message.Contains(environmentName),
-            "an operator who asks for seeding needs to read why it did not happen");
+        log.Entries.Should().NotContain(entry => entry.Message.Contains("Seeding was requested"));
     }
 
     [Fact]
@@ -148,16 +174,17 @@ public sealed class SeedingTests : IAsyncLifetime
     }
 
     /// <summary>
-    /// Captures what was logged, so a test can prove which path the code took. Handed to a seeder
-    /// directly, or registered with a host as the provider behind every category.
+    /// Captures what was logged, at what level, so a test can prove which path the code took.
+    /// Handed to a seeder directly, or registered with a host as the provider behind every
+    /// category.
     /// </summary>
     private sealed class RecordingLogger : ILogger<DbSeeder>, ILoggerProvider
     {
-        private readonly List<string> _messages = [];
+        private readonly List<(LogLevel Level, string Message)> _entries = [];
 
-        public IReadOnlyList<string> Messages
+        public IReadOnlyList<(LogLevel Level, string Message)> Entries
         {
-            get { lock (_messages) { return _messages.ToList(); } }
+            get { lock (_entries) { return _entries.ToList(); } }
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
@@ -177,9 +204,9 @@ public sealed class SeedingTests : IAsyncLifetime
             Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            lock (_messages)
+            lock (_entries)
             {
-                _messages.Add(formatter(state, exception));
+                _entries.Add((logLevel, formatter(state, exception)));
             }
         }
     }
@@ -197,14 +224,17 @@ public sealed class SeedingTests : IAsyncLifetime
     /// on, so the refusal is decided by the same call path a deployment takes. Development makes
     /// its own secrets; every other environment expects them, so they are supplied here.
     /// </summary>
-    private sealed class Api(string connectionString, string environmentName, ILoggerProvider log)
-        : WebApplicationFactory<Program>
+    private sealed class Api(
+        string connectionString,
+        string environmentName,
+        bool seedOnStartup,
+        ILoggerProvider log) : WebApplicationFactory<Program>
     {
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.UseEnvironment(environmentName);
             builder.UseSetting("ConnectionStrings:Forum", connectionString);
-            builder.UseSetting("Database:SeedOnStartup", "true");
+            builder.UseSetting("Database:SeedOnStartup", seedOnStartup.ToString());
             builder.UseSetting("Tokens:Pepper", "seeding-test-pepper-value-long-enough");
             builder.UseSetting("Jwt:SigningKey", "seeding-test-signing-key-long-enough-to-pass");
             builder.ConfigureLogging(logging => logging.AddProvider(log));
