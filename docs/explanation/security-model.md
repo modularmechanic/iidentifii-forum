@@ -82,7 +82,8 @@ registered address from an unregistered one by the status, the body or the timin
 The timing took work. An address with an account causes a message; one without causes nothing —
 and waiting for a mail server is long enough to measure, which would have given the answer away
 however carefully the response was worded. Delivery is therefore handed to a queue and happens
-after the response, so both answers are returned at the same speed.
+after the response, so neither answer waits for the mail server. What is left on the known-address
+path is a token insert, about a millisecond against the tens or hundreds the queue removed.
 
 Registration is the deliberate exception. Both a taken *username* and a taken *address* return 409,
 and the address says so plainly enough to act on: sign in, or reset the password. Someone

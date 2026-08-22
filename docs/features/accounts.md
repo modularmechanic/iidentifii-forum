@@ -76,9 +76,10 @@ account rate limit. It is the only endpoint that will answer the question, and i
 ![The registration form refusing an address that already has an account, with links to sign in or reset the password](../screenshots/register-address-taken.png)
 
 **Silence is in the answer and in the timing.** The same reply either way covers what the body
-says. It would not cover how long the reply takes — a known address waits for the mail server, an
-unknown one returns at once — so sending is handed to a queue and happens after the response, and
-both come back at the same speed.
+says. It would not cover how long the reply takes — a known address would wait for the mail server,
+an unknown one returns at once — so sending is accepted by a queue and carried out after the
+response. Neither answer waits for the mail server now; the known-address path still does a token
+insert, about a millisecond against the tens or hundreds that waiting used to cost.
 
 **Rate limits are configurable.** Ten requests a minute for account routes and a hundred and twenty
 for everything else, both settable per deployment. A refusal carries `Retry-After`, so a caller

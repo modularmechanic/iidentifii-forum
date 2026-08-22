@@ -207,9 +207,9 @@ public sealed class AuthService(
 
     /// <summary>
     /// Sends a link to set a new password. Always reports the same thing, so the body of the
-    /// reply says nothing about who is registered. How long it takes to arrive still does: a
-    /// known address waits for the mail server, an unknown one returns at once. Closing that
-    /// would mean handing the send to a queue rather than awaiting it here.
+    /// reply says nothing about who is registered. Nor does the time it takes: the send is
+    /// accepted by a queue and carried out after the response, so neither answer waits for the
+    /// mail server.
     /// </summary>
     public async Task ForgotPasswordAsync(string emailAddress, CancellationToken cancellationToken)
     {
