@@ -1,6 +1,7 @@
 import type { IComment } from '@src/domains/comments/Comment';
 import { ModerationTags, type IPost } from '@src/domains/posts/Post';
 import { storeSession } from '@src/infra/auth/session-storage';
+import { UserRoles, type UserRole } from '@src/domains/users/User';
 
 /** Builds a discussion for tests, letting each test state only what it cares about. */
 export function buildPost(overrides: Partial<IPost> = {}): IPost {
@@ -43,8 +44,12 @@ export function buildComment(overrides: Partial<IComment> = {}): IComment {
  * Signs a member in for the duration of a test by leaving a session where the provider looks for
  * one, which is what a real sign-in does.
  */
-export function signInAs(username = 'dana', id = '01a02518-0000-7000-8000-0000000000aa') {
-  const user = { id, username, email: `${username}@example.com`, role: 'Member' as const };
+export function signInAs(
+  username = 'dana',
+  id = '01a02518-0000-7000-8000-0000000000aa',
+  role: UserRole = UserRoles.Member,
+) {
+  const user = { id, username, email: `${username}@example.com`, role };
 
   storeSession({
     token: 'test-token',
@@ -53,4 +58,9 @@ export function signInAs(username = 'dana', id = '01a02518-0000-7000-8000-000000
   });
 
   return user;
+}
+
+/** A moderator, who may flag a discussion. */
+export function signInAsModerator(username = 'mod') {
+  return signInAs(username, '01a02518-0000-7000-8000-00000000d00d', UserRoles.Moderator);
 }

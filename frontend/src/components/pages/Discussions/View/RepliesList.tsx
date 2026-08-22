@@ -2,6 +2,7 @@ import Avatar from '@src/components/common/ui/sm/Avatar';
 import Empty from '@src/components/common/ui/sm/Empty';
 import { getShortDate } from '@src/common/utils/format-date';
 import type { IComment } from '@src/domains/comments/Comment';
+import ReplyActions from './ReplyActions';
 
 /***** Types *****/
 
@@ -50,6 +51,7 @@ function Reply(props: IReplyProps) {
           {reply.updatedAt && <span>edited</span>}
         </div>
         <p className="mt-1 text-sm whitespace-pre-line">{reply.body}</p>
+        <ReplyActions reply={reply} />
       </div>
     </li>
   );

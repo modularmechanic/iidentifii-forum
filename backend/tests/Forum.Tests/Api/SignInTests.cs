@@ -243,9 +243,15 @@ public sealed class SignInTests(ApiFactory factory)
     private string CodeFor(string emailAddress)
     {
         var body = factory.Emails.LastTo(emailAddress)?.PlainTextBody
-            ?? throw new InvalidOperationException($"No code was sent to {emailAddress}.");
+            ?? throw new InvalidOperationException($"No message was sent to {emailAddress}.");
 
-        return Regex.Match(body, @"code is (\d{6})").Groups[1].Value;
+        // An empty code is refused, which is what several of these tests expect anyway — so a
+        // message carrying no code would let them pass without the code ever being sent.
+        var match = Regex.Match(body, @"code is (\d{6})");
+
+        return match.Success
+            ? match.Groups[1].Value
+            : throw new InvalidOperationException($"The message to {emailAddress} carried no code.");
     }
 
     private async Task<AuthenticatedResponse> SignInFullyAsync(RegisterRequest account)

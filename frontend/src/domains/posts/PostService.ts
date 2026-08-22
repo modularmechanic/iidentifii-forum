@@ -51,6 +51,30 @@ const PostService = {
     });
   },
 
+  async update(id: string, request: ICreatePostRequest): Promise<IPost> {
+    return await fetchJson<IPost>(`/posts/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+  },
+
+  async remove(id: string): Promise<void> {
+    await fetchJson<void>(`/posts/${id}`, { method: 'DELETE' });
+  },
+
+  async flag(id: string, tag: ModerationTag): Promise<void> {
+    await fetchJson<void>(`/posts/${id}/tags`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tag }),
+    });
+  },
+
+  async unflag(id: string, tag: ModerationTag): Promise<void> {
+    await fetchJson<void>(`/posts/${id}/tags/${tag}`, { method: 'DELETE' });
+  },
+
   async like(id: string): Promise<void> {
     await fetchJson<void>(`/posts/${id}/like`, { method: 'POST' });
   },

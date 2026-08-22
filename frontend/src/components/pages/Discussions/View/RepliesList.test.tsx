@@ -1,11 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { renderWithProviders } from '@src/test/render';
 import { buildComment } from '@src/test/factories';
 import RepliesList from './RepliesList';
 
 describe('RepliesList', () => {
   it('shows each reply with its author', () => {
-    render(
+    renderWithProviders(
       <RepliesList
         replies={[
           buildComment({ id: '1', body: 'At least once.' }),
@@ -20,13 +21,15 @@ describe('RepliesList', () => {
   });
 
   it('marks a reply that was edited', () => {
-    render(<RepliesList replies={[buildComment({ updatedAt: '2026-08-21T09:00:00+00:00' })]} />);
+    renderWithProviders(
+      <RepliesList replies={[buildComment({ updatedAt: '2026-08-21T09:00:00+00:00' })]} />,
+    );
 
     expect(screen.getByText('edited')).toBeInTheDocument();
   });
 
   it('invites the first answer when there are none', () => {
-    render(<RepliesList replies={[]} />);
+    renderWithProviders(<RepliesList replies={[]} />);
 
     expect(screen.getByText('No replies yet')).toBeInTheDocument();
   });

@@ -23,6 +23,27 @@ internal sealed class SignedInMembers(ApiFactory factory, HttpClient client)
         return new Member(session.User.Id, account.Username, session.Token);
     }
 
+    /// <summary>
+    /// Signs in as one of the seeded accounts, which are already confirmed. The moderator only
+    /// exists through seeding: nothing in the API promotes a member, by design.
+    /// </summary>
+    public async Task<Member> SignInSeededAsync(string username, string emailAddress)
+    {
+        var account = new RegisterRequest
+        {
+            Username = username,
+            Email = emailAddress,
+            Password = "Password123!",
+        };
+
+        var session = await SignInAsync(account);
+
+        return new Member(session.User.Id, session.User.Username, session.Token);
+    }
+
+    /// <summary>The seeded moderator.</summary>
+    public Task<Member> ModeratorAsync() => SignInSeededAsync("mod", "mod@forum.local");
+
     /// <summary>Registers an account and confirms its address using the emailed link.</summary>
     public async Task<RegisterRequest> RegisterAndConfirmAsync()
     {
@@ -60,8 +81,14 @@ internal sealed class SignedInMembers(ApiFactory factory, HttpClient client)
             .ReadFromJsonAsync<LoginChallengeResponse>(TestJson.Options);
 
         var body = factory.Emails.LastTo(account.Email)?.PlainTextBody
-            ?? throw new InvalidOperationException($"No code was sent to {account.Email}.");
-        var code = Regex.Match(body, @"code is (\d{6})").Groups[1].Value;
+            ?? throw new InvalidOperationException($"No message was sent to {account.Email}.");
+
+        // A message without a code would otherwise yield an empty one, and every test built on
+        // this helper would go on to fail somewhere far less obvious than here.
+        var match = Regex.Match(body, @"code is (\d{6})");
+        var code = match.Success
+            ? match.Groups[1].Value
+            : throw new InvalidOperationException($"The message to {account.Email} carried no code.");
 
         var sessionResponse = await client.PostAsJsonAsync(
             "/api/v1/auth/verify-2fa",

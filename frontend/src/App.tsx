@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Link, Route, Routes } from 'react-router';
 import AppShell from '@src/components/common/ui/lg/AppShell';
 import Home from '@src/components/pages/Home/Home';
+import EditDiscussion from '@src/components/pages/Discussions/Edit/EditDiscussion';
 import NewDiscussion from '@src/components/pages/Discussions/New/NewDiscussion';
 import ViewDiscussion from '@src/components/pages/Discussions/View/ViewDiscussion';
 import CheckInbox from '@src/components/pages/Auth/CheckInbox/CheckInbox';
@@ -39,6 +40,14 @@ function App() {
                   </RequireAuth>
                 }
                 path={Paths.NewDiscussion}
+              />
+              <Route
+                element={
+                  <RequireAuth>
+                    <EditDiscussion />
+                  </RequireAuth>
+                }
+                path={Paths.EditDiscussionPattern}
               />
               <Route element={<ViewDiscussion />} path={Paths.DiscussionPattern} />
               <Route element={<Register />} path={Paths.Register} />

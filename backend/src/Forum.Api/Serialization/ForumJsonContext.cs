@@ -2,6 +2,7 @@ using Forum.Api.Contracts;
 using Forum.Application.Common.Models;
 using Forum.Application.Dtos;
 using Forum.Application.Queries;
+using Forum.Domain.Posts;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json.Serialization;
 using System.Text.Json;
@@ -31,6 +32,8 @@ namespace Forum.Api.Serialization;
 [JsonSerializable(typeof(ForgotPasswordRequest))]
 [JsonSerializable(typeof(ResetPasswordRequest))]
 [JsonSerializable(typeof(CreatePostRequest))]
+[JsonSerializable(typeof(FlagPostRequest))]
+[JsonSerializable(typeof(ModerationTag))]
 [JsonSerializable(typeof(CreateCommentRequest))]
 [JsonSerializable(typeof(PostDto))]
 [JsonSerializable(typeof(PostSort))]

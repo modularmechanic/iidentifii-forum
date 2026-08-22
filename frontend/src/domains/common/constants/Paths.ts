@@ -3,6 +3,8 @@ const Paths = {
   Home: '/',
   DiscussionPattern: '/discussions/:id',
   NewDiscussion: '/discussions/new',
+  EditDiscussionPattern: '/discussions/:id/edit',
+  editDiscussion: (id: string) => `/discussions/${id}/edit`,
   discussion: (id: string) => `/discussions/${id}`,
   Register: '/register',
   CheckInbox: '/register/check-inbox',

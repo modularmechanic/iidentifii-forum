@@ -89,6 +89,84 @@ public sealed class PostService(IForumDbContext database, TimeProvider clock)
         await database.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>Rewrites a discussion. Only its author may.</summary>
+    public async Task<PostDto> UpdateAsync(
+        Guid postId,
+        Guid actorId,
+        CreatePostRequest request,
+        CancellationToken cancellationToken)
+    {
+        var post = await FindAsync(postId, cancellationToken);
+
+        post.Update(actorId, request.Title, request.Body, clock.GetUtcNow());
+
+        await database.SaveChangesAsync(cancellationToken);
+
+        return await GetByIdAsync(postId, actorId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Removes a discussion. Its replies, likes and flags go with it, which the database does by
+    /// cascade rather than this method by hand.
+    /// </summary>
+    public async Task DeleteAsync(Guid postId, Guid actorId, CancellationToken cancellationToken)
+    {
+        var post = await FindAsync(postId, cancellationToken);
+
+        post.EnsureOwnedBy(actorId);
+
+        database.Posts.Remove(post);
+        await database.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Marks a discussion as misleading or false. Whether the caller may is decided by the
+    /// entity, which is given the member rather than a claim to inspect.
+    /// </summary>
+    public async Task FlagAsync(
+        Guid postId,
+        Guid moderatorId,
+        ModerationTag tag,
+        CancellationToken cancellationToken)
+    {
+        var post = await database.Posts
+            .Include(candidate => candidate.Tags)
+            .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
+            ?? throw NotFoundException.Discussion(postId);
+
+        var moderator = await database.Users
+            .SingleOrDefaultAsync(candidate => candidate.Id == moderatorId, cancellationToken)
+            ?? throw new NotFoundException("The signed-in member no longer exists.");
+
+        var postTag = post.Flag(moderator, tag, clock.GetUtcNow());
+
+        // The flag carries its own identifier, so reaching the parent's collection is not enough
+        // to mark it new.
+        database.PostTags.Add(postTag);
+
+        await database.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>Takes a flag off, or reports that it was not there.</summary>
+    public async Task UnflagAsync(Guid postId, ModerationTag tag, CancellationToken cancellationToken)
+    {
+        var post = await database.Posts
+            .Include(candidate => candidate.Tags)
+            .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
+            ?? throw NotFoundException.Discussion(postId);
+
+        if (post.Unflag(tag) is null)
+        {
+            throw new NotFoundException("This discussion does not carry that flag.");
+        }
+
+        await database.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Post> FindAsync(Guid postId, CancellationToken cancellationToken)
+        => await database.Posts.SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
+            ?? throw NotFoundException.Discussion(postId);
+
     private static IQueryable<Post> Filter(IQueryable<Post> posts, PostQuery query)
     {
         if (query.From is { } from)

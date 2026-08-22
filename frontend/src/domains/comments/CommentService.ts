@@ -26,6 +26,18 @@ const CommentService = {
       body: JSON.stringify({ body }),
     });
   },
+
+  async update(id: string, body: string): Promise<IComment> {
+    return await fetchJson<IComment>(`/comments/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body }),
+    });
+  },
+
+  async remove(id: string): Promise<void> {
+    await fetchJson<void>(`/comments/${id}`, { method: 'DELETE' });
+  },
 } as const;
 
 export default CommentService;
