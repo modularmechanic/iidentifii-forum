@@ -31,6 +31,12 @@ function OwnerActions(props: IProps) {
   const remove = useMutation({
     mutationFn: () => PostService.remove(post.id),
     onSuccess: async () => {
+      // The list is refetched, but this discussion and its replies are thrown away rather than
+      // refetched: nothing is there to fetch any more, and a cached copy would be handed straight
+      // back to anyone who pressed the back button.
+      queryClient.removeQueries({ queryKey: ['post', post.id] });
+      queryClient.removeQueries({ queryKey: ['comments', post.id] });
+
       await queryClient.invalidateQueries({ queryKey: ['posts'] });
       await navigate(Paths.Home);
     },

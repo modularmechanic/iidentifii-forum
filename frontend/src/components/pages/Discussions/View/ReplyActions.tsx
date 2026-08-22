@@ -98,6 +98,8 @@ function ReplyActions(props: IProps) {
         Edit
       </button>
 
+      {remove.isError && <span className="text-danger">Could not delete that.</span>}
+
       {isConfirming ? (
         <>
           <span className="text-muted">Delete this reply?</span>

@@ -115,6 +115,7 @@ public sealed class ModerationTests(ApiFactory factory)
         var author = await _members.CreateAsync();
         var moderator = await _members.ModeratorAsync();
         var post = await StartDiscussionAsync(author, "Findable when flagged", "Filter should find it.");
+        var untouched = await StartDiscussionAsync(author, "Not flagged", "This one stays out of it.");
 
         await FlagAsync(moderator, post.Id);
 
@@ -123,6 +124,11 @@ public sealed class ModerationTests(ApiFactory factory)
             TestJson.Options);
 
         page!.Items.Should().Contain(candidate => candidate.Id == post.Id);
+
+        // Without a control the assertion above passes even when the filter is ignored entirely.
+        page.Items.Should().NotContain(candidate => candidate.Id == untouched.Id);
+        page.Items.Should().OnlyContain(
+            candidate => candidate.Tags.Any(tag => tag.Tag == ModerationTag.MisleadingOrFalse));
     }
 
     [Fact]
@@ -140,6 +146,7 @@ public sealed class ModerationTests(ApiFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var updated = await response.Content.ReadFromJsonAsync<PostDto>(TestJson.Options);
         updated!.Title.Should().Be("Second wording");
+        updated.Body.Should().Be("The corrected body.", "the body was rewritten too");
         updated.UpdatedAt.Should().NotBeNull("an edited discussion says that it was edited");
     }
 

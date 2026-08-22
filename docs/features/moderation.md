@@ -17,16 +17,17 @@ else's words, and the API refuses them if they try.
 
 ## Endpoints
 
-| Method | Path | Who | Returns |
-| --- | --- | --- | --- |
-| POST | `/api/v1/posts/{id}/tags` | moderator | 201, or 409 if already flagged |
-| DELETE | `/api/v1/posts/{id}/tags/{tag}` | moderator | 204, or 404 if not flagged |
-| PUT | `/api/v1/posts/{id}` | author | 200 with the discussion |
-| DELETE | `/api/v1/posts/{id}` | author | 204 |
-| PUT | `/api/v1/comments/{id}` | author | 200 with the reply |
-| DELETE | `/api/v1/comments/{id}` | author | 204 |
+| Method | Path | Who | Succeeds with | Refuses with |
+| --- | --- | --- | --- | --- |
+| POST | `/api/v1/posts/{id}/tags` | moderator | 201 | 400 unknown tag · 404 no such discussion · 409 already flagged |
+| DELETE | `/api/v1/posts/{id}/tags/{tag}` | moderator | 204 | 404 no such discussion, or not flagged with it |
+| PUT | `/api/v1/posts/{id}` | author | 200 with the discussion | 400 empty or overlong · 404 no such discussion |
+| DELETE | `/api/v1/posts/{id}` | author | 204 | 404 no such discussion |
+| PUT | `/api/v1/comments/{id}` | author | 200 with the reply | 400 empty or overlong · 404 no such reply |
+| DELETE | `/api/v1/comments/{id}` | author | 204 | 404 no such reply |
 
-Anybody else gets 403. Anybody without a session gets 401.
+Anybody else gets 403. Anybody without a session gets 401. A 403 rather than a 404 is deliberate
+where the thing exists: pretending it is missing would be a different untruth.
 
 ## Decisions worth knowing
 
