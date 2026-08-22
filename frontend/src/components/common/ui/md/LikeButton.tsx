@@ -19,17 +19,20 @@ function LikeButton(props: IProps) {
   const { count, isLiked, disabledReason, isPending, onToggle } = props;
 
   const isDisabled = disabledReason !== undefined || isPending;
+  const action = isLiked ? 'Remove your like' : 'Like this discussion';
 
   return (
     <button
-      aria-label={isLiked ? 'Remove your like' : 'Like this discussion'}
+      // The label states the whole control, because it replaces the text inside rather than
+      // adding to it: without the count and the reason here, neither is ever announced.
+      aria-label={`${_asSentence(disabledReason ?? action)} ${count} ${count === 1 ? 'like' : 'likes'}`}
       aria-pressed={isLiked}
       className={`inline-flex w-12 shrink-0 flex-col items-center gap-0.5 self-center rounded-sm py-1 ${
         isLiked ? 'text-accent' : 'text-muted'
       } ${isDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-subtle hover:text-accent'}`}
       disabled={isDisabled}
       onClick={onToggle}
-      title={disabledReason ?? (isLiked ? 'Remove your like' : 'Like this discussion')}
+      title={disabledReason ?? action}
       type="button"
     >
       <svg
@@ -43,9 +46,15 @@ function LikeButton(props: IProps) {
         <path d="M12 21s-7-4.6-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.4-9.5 9-9.5 9z" />
       </svg>
       <span className="font-mono text-sm tabular-nums">{count}</span>
-      <span className="sr-only">likes</span>
     </button>
   );
+}
+
+/***** Functions *****/
+
+/** Ends the phrase with a single full stop, whether or not it arrived with one. */
+function _asSentence(phrase: string): string {
+  return phrase.endsWith('.') ? phrase : `${phrase}.`;
 }
 
 /***** Export default *****/

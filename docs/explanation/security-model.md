@@ -75,6 +75,11 @@ trusted: a stale or tampered token fails there and the reader is signed out.
 whatever address they are given, and apply their cooldown silently. A caller cannot tell a
 registered address from an unregistered one by the status, the body or the timing.
 
+The timing took work. An address with an account causes a message; one without causes nothing —
+and waiting for a mail server is long enough to measure, which would have given the answer away
+however carefully the response was worded. Delivery is therefore handed to a queue and happens
+after the response, so both answers are returned at the same speed.
+
 Registration is the deliberate exception: a taken *username* returns 409, because the person
 typing it has to pick a different one. Usernames are shown on every post anyway, so nothing is
 disclosed that browsing does not already show. Addresses are never shown.

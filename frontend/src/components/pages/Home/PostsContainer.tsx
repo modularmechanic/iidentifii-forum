@@ -8,11 +8,15 @@ import Pagination from '@src/components/common/ui/md/Pagination';
 import SortTabs from '@src/components/common/ui/md/SortTabs';
 import { useListCriteria } from '@src/components/common/hooks/useListCriteria';
 import PostService from '@src/domains/posts/PostService';
+import { HttpError } from '@src/infra/http';
 import PostsList from './PostsList';
 
 /***** Constants *****/
 
 const PAGE_SIZE = 10;
+
+/** Said the same way wherever the list fails, so one failure does not read as two. */
+const FAILED_TO_LOAD = 'Could not load the discussions.';
 
 /***** Components *****/
 
@@ -80,6 +84,7 @@ function PostsContainer() {
 
       <Results
         errorMessage={query.isError ? _describeError(query.error) : undefined}
+        hasFilters={hasFilters}
         isPending={query.isPending}
         onRetry={() => void query.refetch()}
         result={query.data}
@@ -93,11 +98,12 @@ function PostsContainer() {
 function Results(props: {
   isPending: boolean;
   errorMessage?: string;
+  hasFilters: boolean;
   result?: Awaited<ReturnType<typeof PostService.fetchPage>>;
   onRetry: () => void;
   onPage: (page: number) => void;
 }) {
-  const { isPending, errorMessage, result, onRetry, onPage } = props;
+  const { isPending, errorMessage, hasFilters, result, onRetry, onPage } = props;
 
   if (isPending) {
     return (
@@ -108,17 +114,17 @@ function Results(props: {
   }
 
   if (errorMessage !== undefined || result === undefined) {
-    return (
-      <ErrorMessage message={errorMessage ?? 'Could not load discussions.'} onRetry={onRetry} />
-    );
+    return <ErrorMessage message={errorMessage ?? FAILED_TO_LOAD} onRetry={onRetry} />;
   }
 
   return (
     <>
-      <p className="font-mono text-xs text-muted tabular-nums">
+      {/* Sorting and filtering change the list without moving the reader, so the new size is
+          announced rather than only redrawn. */}
+      <p aria-live="polite" className="font-mono text-xs text-muted tabular-nums">
         {result.totalCount} {result.totalCount === 1 ? 'discussion' : 'discussions'}
       </p>
-      <PostsList posts={result.items} />
+      <PostsList hasFilters={hasFilters} posts={result.items} />
       <Pagination
         hasNext={result.hasNext}
         hasPrevious={result.hasPrevious}
@@ -132,11 +138,9 @@ function Results(props: {
 
 /***** Functions *****/
 
-/** A rejected filter deserves a different message from an unreachable API. */
+/** A rejected filter deserves the API's own words; anything else gets a plain sentence. */
 function _describeError(error: unknown): string {
-  return error instanceof Error && error.message
-    ? error.message
-    : 'Could not load discussions. Is the API running?';
+  return error instanceof HttpError && error.message ? error.message : FAILED_TO_LOAD;
 }
 
 /***** Export default *****/

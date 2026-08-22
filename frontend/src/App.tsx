@@ -74,7 +74,7 @@ function NotFound() {
       <p className="mt-1 text-sm text-muted">
         Check the address, or{' '}
         <Link className="text-accent underline" to={Paths.Home}>
-          head back to the discussions
+          back to all discussions
         </Link>
         .
       </p>

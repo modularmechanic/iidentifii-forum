@@ -77,16 +77,31 @@ export async function fetchRootJson<T>(path: string, init?: RequestInit): Promis
   return (await response.json()) as T;
 }
 
-/** Reads the problem details a failed response carries, falling back to the status text. */
+/**
+ * Reads the problem details a failed response carries. When it carries none the message is left
+ * empty rather than filled with the status text: "Internal Server Error" is the browser's voice,
+ * not the forum's, and every caller already has its own sentence for a failure it cannot explain.
+ */
 async function _toHttpError(response: Response): Promise<HttpError> {
   try {
     const problem = (await response.json()) as IProblemDetails;
     return new HttpError(
       response.status,
-      problem.detail ?? problem.title ?? response.statusText,
+      _firstNonEmpty(problem.detail, problem.title, response.statusText),
       problem.errors ?? {},
     );
   } catch {
-    return new HttpError(response.status, response.statusText);
+    return new HttpError(response.status, _firstNonEmpty(response.statusText));
   }
+}
+
+/**
+ * The first of these that actually says something. A failure with no detail used to produce an
+ * empty message, which a page would then render as a banner with nothing written in it.
+ */
+function _firstNonEmpty(...candidates: (string | undefined)[]): string {
+  return (
+    candidates.find((candidate) => candidate !== undefined && candidate.trim() !== '') ??
+    'The request was refused, and the reason was not given.'
+  );
 }

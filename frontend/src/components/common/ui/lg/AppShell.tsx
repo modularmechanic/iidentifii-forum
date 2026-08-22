@@ -5,6 +5,11 @@ import Paths from '@src/domains/common/constants/Paths';
 import UserOps from '@src/domains/users/UserOps';
 import { useAuth } from '@src/infra/auth/useAuth';
 
+/***** Constants *****/
+
+/** The skip link and the landmark it jumps to have to agree on this. */
+const MAIN_ID = 'content';
+
 /***** Types *****/
 
 interface IProps {
@@ -19,9 +24,24 @@ function AppShell(props: IProps) {
 
   return (
     <div className="min-h-screen bg-canvas">
+      <SkipLink />
       <SiteHeader />
-      <main className="mx-auto max-w-4xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6" id={MAIN_ID}>
+        {children}
+      </main>
     </div>
+  );
+}
+
+/** Lets a keyboard reader step over the masthead instead of tabbing through it on every page. */
+function SkipLink() {
+  return (
+    <a
+      className="sr-only focus:not-sr-only focus:absolute focus:z-10 focus:m-2 focus:rounded-sm focus:border focus:border-line focus:bg-surface focus:px-3 focus:py-2 focus:text-sm"
+      href={`#${MAIN_ID}`}
+    >
+      Skip to the content
+    </a>
   );
 }
 
@@ -29,8 +49,10 @@ function AppShell(props: IProps) {
 function SiteHeader() {
   return (
     <header className="border-b border-line">
-      <div className="mx-auto flex h-14 max-w-4xl items-center gap-3 px-6">
-        <Link className="flex items-center gap-2 font-semibold" to={Paths.Home}>
+      {/* Wraps rather than squeezing: at 375px the account controls take a second line instead of
+          breaking the wordmark and the buttons across two lines each. */}
+      <div className="mx-auto flex min-h-14 max-w-4xl flex-wrap items-center gap-3 px-4 py-2 sm:px-6">
+        <Link className="flex items-center gap-2 font-semibold whitespace-nowrap" to={Paths.Home}>
           <span className="grid size-6 place-items-center rounded bg-ink font-mono text-xs text-canvas">
             ii
           </span>
@@ -51,10 +73,16 @@ function AccountControls() {
   if (!isSignedIn || user === null) {
     return (
       <nav className="ml-auto flex items-center gap-2">
-        <Link className="px-3 py-1.5 text-sm text-muted hover:text-ink" to={Paths.Login}>
+        <Link
+          className="px-2 py-1.5 text-sm whitespace-nowrap text-muted hover:text-ink sm:px-3"
+          to={Paths.Login}
+        >
           Log in
         </Link>
-        <Link className="rounded-sm border border-line px-3 py-1.5 text-sm" to={Paths.Register}>
+        <Link
+          className="rounded-sm border border-line px-2 py-1.5 text-sm whitespace-nowrap sm:px-3"
+          to={Paths.Register}
+        >
           Join the forum
         </Link>
       </nav>
@@ -73,7 +101,7 @@ function AccountControls() {
         )}
       </span>
       <button
-        className="px-3 py-1.5 text-sm text-muted hover:text-ink"
+        className="px-2 py-1.5 text-sm whitespace-nowrap text-muted hover:text-ink sm:px-3"
         onClick={() => {
           signOut();
           navigate(Paths.Home);

@@ -36,12 +36,19 @@ public static class DependencyInjection
         // Without a mail server configured, messages go to the log so nothing is lost.
         if (configuration.GetValue($"{EmailOptions.SectionName}:Enabled", defaultValue: true))
         {
-            services.AddScoped<IEmailSender, SmtpEmailSender>();
+            services.AddScoped<IEmailTransport, SmtpEmailSender>();
         }
         else
         {
-            services.AddScoped<IEmailSender, LogEmailSender>();
+            services.AddScoped<IEmailTransport, LogEmailSender>();
         }
+
+        // What the application calls returns as soon as the message is accepted; delivery happens
+        // behind the response, so an address that exists cannot be told from one that does not by
+        // how long the answer takes.
+        services.AddSingleton<EmailQueue>();
+        services.AddScoped<IEmailSender, QueuedEmailSender>();
+        services.AddHostedService<EmailDispatcher>();
 
         return services;
     }

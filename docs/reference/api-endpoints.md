@@ -181,12 +181,19 @@ discussion exists, and pretending otherwise would be a different lie.
 | 201 | The flag was applied |
 | 400 | The tag is not one the forum recognises |
 | 403 | The caller is not a moderator |
-| 404 | No discussion has that identifier |
+| 404 | No discussion has that identifier, or the signed-in member no longer exists |
 | 409 | It already carries that flag |
 
 ### `DELETE /posts/{id}/tags/{tag}`
 
-Moderators only. 204 when removed, 404 when it was not there, 403 for anybody else.
+Moderators only, checked by the endpoint policy and again by the discussion itself.
+
+| Status | When |
+| --- | --- |
+| 204 | The flag was removed |
+| 401 | No session |
+| 403 | The caller is not a moderator |
+| 404 | No discussion has that identifier, or it did not carry that flag |
 
 ### `PUT /posts/{id}`
 
@@ -304,6 +311,16 @@ A validation failure adds `errors`, keyed by field:
 }
 ```
 
+A body the API cannot read is reported the same way, against the field it could not read rather
+than against the position in the document where reading stopped:
+
+```json
+{
+  "status": 400,
+  "errors": { "challengeId": ["The value is not in a form this field accepts."] }
+}
+```
+
 | Status | Meaning |
 | --- | --- |
 | 400 | The request was malformed or outside allowed bounds |
@@ -311,7 +328,9 @@ A validation failure adds `errors`, keyed by field:
 | 429 | Too many requests; `Retry-After` says how long to wait |
 | 500 | Something unexpected. `traceId` identifies it in the logs |
 
-An unexpected failure never includes internal detail. Quote `traceId` when reporting one.
+No failure includes internal detail: an unexpected one is reported without its message, and a
+value the reader could not parse is described in the forum's words rather than the parser's, which
+would otherwise name types and count bytes. Quote `traceId` when reporting one.
 
 ## Rate limits
 
@@ -319,3 +338,8 @@ An unexpected failure never includes internal detail. Quote `traceId` when repor
 | --- | --- |
 | Everything | 120 requests a minute per address |
 | Authentication routes | 10 requests a minute per address |
+| `GET /auth/me` | 120 requests a minute per address |
+
+`GET /auth/me` sits with the authentication routes but is not an attempt to authenticate: a page
+checking who is signed in should not spend the small sign-in budget. It gets the ordinary
+allowance rather than being excused from limiting, which would take the global limit with it.

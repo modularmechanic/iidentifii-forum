@@ -49,7 +49,7 @@ function NotFoundOrError(props: { error: unknown; onRetry: () => void }) {
   if (error instanceof HttpError && error.status === 404) {
     return (
       <section className="py-12 text-center">
-        <h1 className="font-medium">Discussion not found</h1>
+        <h1 className="text-lg font-semibold">Discussion not found</h1>
         <p className="mt-1 text-sm text-muted">
           It may have been deleted.{' '}
           <Link className="text-accent underline" to={Paths.Home}>

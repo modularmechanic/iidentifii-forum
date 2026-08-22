@@ -95,6 +95,38 @@ public sealed class ModerationTests(ApiFactory factory)
     }
 
     [Fact]
+    public async Task A_member_cannot_take_a_flag_off()
+    {
+        var author = await _members.CreateAsync();
+        var member = await _members.CreateAsync();
+        var moderator = await _members.ModeratorAsync();
+        var post = await StartDiscussionAsync(author, "Not yours to clear", "A member tries to unflag.");
+
+        await FlagAsync(moderator, post.Id);
+
+        using var request = member.Request(
+            HttpMethod.Delete,
+            $"/api/v1/posts/{post.Id}/tags/MisleadingOrFalse");
+        var response = await _client.SendAsync(request);
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        var still = await _client.GetFromJsonAsync<PostDto>($"/api/v1/posts/{post.Id}", TestJson.Options);
+        still!.Tags.Should().ContainSingle("a refused request leaves the flag where it was");
+    }
+
+    [Fact]
+    public async Task Taking_off_a_flag_without_a_session_is_refused()
+    {
+        var author = await _members.CreateAsync();
+        var post = await StartDiscussionAsync(author, "Anonymous unflagging", "Nobody is signed in.");
+
+        var response = await _client.DeleteAsync($"/api/v1/posts/{post.Id}/tags/MisleadingOrFalse");
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task Taking_off_a_flag_that_is_not_there_is_reported_as_missing()
     {
         var author = await _members.CreateAsync();

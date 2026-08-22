@@ -8,12 +8,55 @@ using Microsoft.Extensions.Logging.Abstractions;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Net;
+using System.Text;
 using Xunit;
 
 namespace Forum.Tests.Api;
 
-public sealed class ExceptionHandlingTests
+[Collection(ApiCollection.Name)]
+public sealed class ExceptionHandlingTests(ApiFactory factory)
 {
+    private readonly HttpClient _client = factory.CreateClient();
+
+    /// <summary>
+    /// A body the model binder cannot read used to be explained in the framework's own words,
+    /// which name CLR types and count bytes. Neither says anything to whoever sent the request,
+    /// and both describe the inside of the API.
+    /// </summary>
+    [Fact]
+    public async Task An_unreadable_body_is_refused_without_framework_detail()
+    {
+        using var content = new StringContent(
+            """{"challengeId":"not-a-guid","code":"123456"}""",
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await _client.PostAsync("/api/v1/auth/verify-2fa", content);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var body = await response.Content.ReadAsStringAsync();
+        body.Should().NotContain("Forum.Application")
+            .And.NotContain("System.")
+            .And.NotContain("LineNumber")
+            .And.NotContain("BytePositionInLine");
+
+        // Reported against the field the caller sent, not the offset the parser stopped on.
+        body.Should().Contain("challengeId")
+            .And.Contain("The value is not in a form this field accepts.");
+    }
+
+    /// <summary>A message the API wrote itself is still the one the caller sees.</summary>
+    [Fact]
+    public async Task A_field_the_API_checks_keeps_its_own_message()
+    {
+        var response = await _client.GetAsync("/api/v1/posts?page=0");
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await response.Content.ReadAsStringAsync())
+            .Should().Contain("Page numbering starts at 1.");
+    }
+
     /// <summary>
     /// Diagnostics are optional: when nothing is listening, no activity exists to read an
     /// identifier from, and the handler must still answer.

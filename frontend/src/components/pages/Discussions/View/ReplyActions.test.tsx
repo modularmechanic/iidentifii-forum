@@ -48,7 +48,7 @@ describe('ReplyActions', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Delete' }));
     expect(remove).not.toHaveBeenCalled();
 
-    await userEvent.click(screen.getByRole('button', { name: 'Yes' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, delete' }));
 
     await waitFor(() => expect(remove).toHaveBeenCalledWith(buildComment().id));
   });

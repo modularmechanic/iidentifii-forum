@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 import Banner from '@src/components/common/ui/sm/Banner';
@@ -28,6 +28,23 @@ function OwnerActions(props: IProps) {
   const queryClient = useQueryClient();
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // Asking the question replaces the button that was pressed. Answering "Keep it" replaces it
+  // back, and without this the focus would be left on nothing at all.
+  const deleteButton = useRef<HTMLButtonElement>(null);
+
+  // A ref rather than state: nothing renders differently because of it, and it only needs to
+  // survive until the effect below reads it.
+  const isReturningFocus = useRef(false);
+
+  // After the commit, not during it: the button being focused is only in the document once the
+  // question has been replaced by it.
+  useEffect(() => {
+    if (!isConfirming && isReturningFocus.current) {
+      isReturningFocus.current = false;
+      deleteButton.current?.focus();
+    }
+  }, [isConfirming]);
+
   const remove = useMutation({
     mutationFn: () => PostService.remove(post.id),
     onSuccess: async () => {
@@ -50,7 +67,7 @@ function OwnerActions(props: IProps) {
     <div className="flex flex-col gap-2">
       {remove.isError && <Banner tone="error">Could not delete the discussion. Try again.</Banner>}
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link
           className="rounded-sm border border-line px-3 py-1.5 text-sm"
           to={Paths.editDiscussion(post.id)}
@@ -60,8 +77,13 @@ function OwnerActions(props: IProps) {
 
         {isConfirming ? (
           <>
-            <span className="text-sm text-muted">Delete this and its replies?</span>
+            <span className="text-sm text-muted" role="alert">
+              Delete this and its replies?
+            </span>
             <button
+              // The button that was under the cursor has just been replaced, so the answer takes
+              // the focus rather than dropping it at the top of the page.
+              autoFocus
               className="rounded-sm border border-danger px-3 py-1.5 text-sm text-danger disabled:opacity-60"
               disabled={remove.isPending}
               onClick={() => remove.mutate()}
@@ -71,7 +93,10 @@ function OwnerActions(props: IProps) {
             </button>
             <button
               className="rounded-sm border border-line px-3 py-1.5 text-sm"
-              onClick={() => setIsConfirming(false)}
+              onClick={() => {
+                isReturningFocus.current = true;
+                setIsConfirming(false);
+              }}
               type="button"
             >
               Keep it
@@ -81,6 +106,7 @@ function OwnerActions(props: IProps) {
           <button
             className="rounded-sm border border-line px-3 py-1.5 text-sm text-danger"
             onClick={() => setIsConfirming(true)}
+            ref={deleteButton}
             type="button"
           >
             Delete

@@ -36,6 +36,20 @@ describe('NewDiscussion', () => {
     expect(screen.getByRole('button', { name: 'Post discussion' })).toBeDisabled();
   });
 
+  it('says something when the refusal came with no reason at all', async () => {
+    signInAs();
+    // A refusal with no detail and no field errors used to leave the banner empty.
+    vi.spyOn(PostService, 'create').mockRejectedValue(new HttpError(500, '', {}));
+
+    renderWithProviders(<NewDiscussion />);
+
+    await userEvent.type(screen.getByLabelText('Title'), 'x');
+    await userEvent.type(screen.getByLabelText('Body'), 'y');
+    await userEvent.click(screen.getByRole('button', { name: 'Post discussion' }));
+
+    expect(await screen.findByText(/Could not post the discussion/)).toBeInTheDocument();
+  });
+
   it('repeats what the API said was wrong with a field', async () => {
     signInAs();
     vi.spyOn(PostService, 'create').mockRejectedValue(

@@ -14,6 +14,8 @@ import InlineReplies from './InlineReplies';
 
 interface IProps {
   posts: IPost[];
+  /** Whether the reader narrowed the list, which decides what an empty one means. */
+  hasFilters: boolean;
 }
 
 interface IRowProps {
@@ -24,14 +26,18 @@ interface IRowProps {
 
 /** Default component: the discussions on this page, or a note that there are none. */
 function PostsList(props: IProps) {
-  const { posts } = props;
+  const { posts, hasFilters } = props;
 
   if (posts.length === 0) {
     return (
       <div className="rounded-sm border border-line">
-        <Empty title="No discussions match these filters">
-          Try a wider date range, or clear the filters.
-        </Empty>
+        {hasFilters ? (
+          <Empty title="No discussions match these filters">
+            Try a wider date range, or clear the filters.
+          </Empty>
+        ) : (
+          <Empty title="No discussions yet">Be the first to ask something.</Empty>
+        )}
       </div>
     );
   }
@@ -68,11 +74,11 @@ function PostRow(props: IRowProps) {
         />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-medium">
+            <h2 className="font-medium">
               <Link className="hover:text-accent" to={Paths.discussion(post.id)}>
                 {post.title}
               </Link>
-            </h3>
+            </h2>
             {post.tags.map((tag) => (
               <Pill key={tag.tag} label={ModerationTagLabels[tag.tag]} />
             ))}

@@ -31,9 +31,9 @@ describe('liking from the list', () => {
 
     renderWithProviders(<PostsContainer />);
 
-    const button = await screen.findByRole('button', { name: 'Like this discussion' });
+    const button = await screen.findByRole('button', { name: /Log in to like/ });
     expect(button).toBeDisabled();
-    expect(button).toHaveAttribute('title', 'Log in to like');
+    expect(button).toHaveAttribute('title', 'Log in to like.');
 
     await userEvent.click(button);
     expect(like).not.toHaveBeenCalled();
@@ -47,9 +47,9 @@ describe('liking from the list', () => {
 
     renderWithProviders(<PostsContainer />);
 
-    const button = await screen.findByRole('button', { name: 'Like this discussion' });
+    const button = await screen.findByRole('button', { name: /You cannot like your own/ });
     await waitFor(() => expect(button).toBeDisabled());
-    expect(button).toHaveAttribute('title', 'You cannot like your own discussion');
+    expect(button).toHaveAttribute('title', 'You cannot like your own discussion.');
   });
 
   it('likes somebody elses discussion', async () => {
@@ -59,7 +59,7 @@ describe('liking from the list', () => {
 
     renderWithProviders(<PostsContainer />);
 
-    const button = await screen.findByRole('button', { name: 'Like this discussion' });
+    const button = await screen.findByRole('button', { name: /Like this discussion/ });
     await waitFor(() => expect(button).toBeEnabled());
     await userEvent.click(button);
 
@@ -73,7 +73,7 @@ describe('liking from the list', () => {
 
     renderWithProviders(<PostsContainer />);
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Remove your like' }));
+    await userEvent.click(await screen.findByRole('button', { name: /Remove your like/ }));
 
     await waitFor(() => expect(unlike).toHaveBeenCalledWith(buildPost().id));
   });

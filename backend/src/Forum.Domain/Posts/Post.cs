@@ -137,9 +137,20 @@ public sealed class Post
         return postTag;
     }
 
-    /// <summary>Removes a flag. Returns the removed flag, or null when it was not present.</summary>
-    public PostTag? Unflag(ModerationTag tag)
+    /// <summary>
+    /// Removes a flag. Returns the removed flag, or null when it was not present. Only a
+    /// moderator may do this, and the rule lives here for the same reason it does on
+    /// <see cref="Flag"/>: an endpoint attribute only guards the one caller that carries it.
+    /// </summary>
+    public PostTag? Unflag(User moderator, ModerationTag tag)
     {
+        if (moderator.Role != UserRole.Moderator)
+        {
+            throw new DomainException(
+                "Only a moderator can take a flag off a discussion.",
+                DomainError.Forbidden);
+        }
+
         var postTag = _tags.SingleOrDefault(existing => existing.Tag == tag);
 
         if (postTag is not null)

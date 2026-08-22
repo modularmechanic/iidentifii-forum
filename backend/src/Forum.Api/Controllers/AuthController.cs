@@ -88,8 +88,8 @@ public sealed class AuthController(AuthService auth) : ControllerBase
         => Ok(await auth.CompleteSignInAsync(request, cancellationToken));
 
     /// <summary>
-    /// Sends a link to set a new password. Always accepted, so the reply cannot be used to find
-    /// out who is registered.
+    /// Sends a link to set a new password. Always accepted, and the body says the same thing
+    /// either way, so it cannot be read to find out who is registered.
     /// </summary>
     [HttpPost("forgot-password")]
     [ProducesResponseType<AcknowledgementResponse>(StatusCodes.Status202Accepted)]

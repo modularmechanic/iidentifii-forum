@@ -43,11 +43,11 @@ export function useLike(post: IPost): ILikeControl {
 /** Says why the control is inert, in the reader's terms. */
 function _describeWhyNot(isSignedIn: boolean, isOwn: boolean): string | undefined {
   if (!isSignedIn) {
-    return 'Log in to like';
+    return 'Log in to like.';
   }
 
   if (isOwn) {
-    return 'You cannot like your own discussion';
+    return 'You cannot like your own discussion.';
   }
 
   return undefined;

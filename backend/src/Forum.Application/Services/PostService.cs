@@ -148,14 +148,22 @@ public sealed class PostService(IForumDbContext database, TimeProvider clock)
     }
 
     /// <summary>Takes a flag off, or reports that it was not there.</summary>
-    public async Task UnflagAsync(Guid postId, ModerationTag tag, CancellationToken cancellationToken)
+    public async Task UnflagAsync(
+        Guid postId,
+        Guid moderatorId,
+        ModerationTag tag,
+        CancellationToken cancellationToken)
     {
         var post = await database.Posts
             .Include(candidate => candidate.Tags)
             .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
             ?? throw NotFoundException.Discussion(postId);
 
-        if (post.Unflag(tag) is null)
+        var moderator = await database.Users
+            .SingleOrDefaultAsync(candidate => candidate.Id == moderatorId, cancellationToken)
+            ?? throw new NotFoundException("The signed-in member no longer exists.");
+
+        if (post.Unflag(moderator, tag) is null)
         {
             throw new NotFoundException("This discussion does not carry that flag.");
         }

@@ -46,7 +46,7 @@ function ModeratorTools(props: IProps) {
 
       {change.isError && <Banner tone="error">Could not change the flag. Try again.</Banner>}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
         <button
           className="rounded-sm border border-line px-3 py-1.5 text-sm disabled:opacity-60"
           disabled={change.isPending}
