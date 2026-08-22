@@ -3837,6 +3837,69 @@
           ]
         },
         {
+          "name": "An address already registered is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"other{{$timestamp}}\",\n  \"email\": \"{{newEmail}}\",\n  \"password\": \"Password123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "The address the Accounts folder registered, under a name nobody holds. Registering an address that already has an account is refused out loud and told to sign in or ask for a new password, because whoever is typing it has almost always forgotten the account."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (!pm.collectionVariables.get('newEmail')) {",
+                  "    throw new Error('Run the Accounts folder first: it registers the address this request expects to clash with.');",
+                  "}"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('reports a conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('is a problem document', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/problem+json'));",
+                  "pm.test('says where to go next', () => pm.expect(pm.response.json().detail).to.include('reset your password'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "A username with punctuation is refused",
           "request": {
             "method": "POST",

@@ -49,7 +49,7 @@ function PostsContainer() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-end justify-between gap-3 border-b border-line">
+      <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1 border-b border-line">
         <SortTabs
           onChange={(sort, order) => update({ sort, order })}
           order={criteria.order}

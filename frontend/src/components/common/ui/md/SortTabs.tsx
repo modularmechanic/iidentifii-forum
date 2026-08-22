@@ -31,7 +31,10 @@ function SortTabs(props: IProps) {
   const { sort, order, onChange } = props;
 
   return (
-    <div aria-label="Sort discussions" className="flex min-w-0 overflow-x-auto" role="group">
+    // Wrapping rather than scrolling. Making this a scroll container fitted the four orderings
+    // into a narrow window, but on any platform drawing classic scrollbars it also drew one
+    // across the row — a scrollbar for content the reader can simply be shown instead.
+    <div aria-label="Sort discussions" className="flex min-w-0 flex-wrap" role="group">
       {OPTIONS.map((option) => {
         const isSelected = option.sort === sort && option.order === order;
 

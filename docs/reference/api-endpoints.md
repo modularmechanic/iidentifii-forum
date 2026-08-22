@@ -102,7 +102,7 @@ Returns a page of replies, oldest first.
 | --- | --- |
 | 201 | The account was created and a confirmation link sent |
 | 400 | A field breaks one of the rules above |
-| 409 | The username or address is already registered |
+| 409 | The username or the address is already registered. The detail says which, and an address is pointed at signing in or resetting the password |
 
 ### `POST /auth/verify-email`
 

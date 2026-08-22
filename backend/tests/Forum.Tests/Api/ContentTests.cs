@@ -3,7 +3,11 @@ using System.Net.Http.Json;
 using FluentAssertions;
 using Forum.Application.Common.Models;
 using Forum.Application.Dtos;
+using Forum.Application.Services;
+using Forum.Domain.Posts;
+using Forum.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Forum.Tests.Api;
@@ -269,6 +273,76 @@ public sealed class ContentTests(ApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
+
+    [Fact]
+    public async Task The_rule_against_liking_twice_survives_a_popular_discussion()
+    {
+        var (post, newcomer) = await PopularDiscussionAsync();
+
+        (await LikeAsync(newcomer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Created);
+
+        var fetched = await _client.GetFromJsonAsync<PostDto>($"/api/v1/posts/{post.Id}", TestJson.Options);
+        fetched!.LikeCount.Should().Be(11);
+
+        (await LikeAsync(newcomer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Conflict);
+    }
+
+    /// <summary>
+    /// The service is called directly here because the saving is invisible from outside: the
+    /// answer is the same either way, and only the context that ran the query can say how many
+    /// rows it loaded to produce it.
+    /// </summary>
+    [Fact]
+    public async Task Liking_a_popular_discussion_loads_only_the_callers_own_like()
+    {
+        var (post, newcomer) = await PopularDiscussionAsync();
+
+        using var scope = factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<ForumDbContext>();
+
+        await scope.ServiceProvider.GetRequiredService<PostService>()
+            .LikeAsync(post.Id, newcomer.Id, CancellationToken.None);
+
+        // The one just added, and nothing else. Loading the whole collection would leave eleven.
+        LikesLoadedFor(database, post.Id).Should().Be(1);
+    }
+
+    [Fact]
+    public async Task Unliking_a_popular_discussion_loads_only_the_callers_own_like()
+    {
+        var (post, admirer) = await PopularDiscussionAsync();
+        (await LikeAsync(admirer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Created);
+
+        using var scope = factory.Services.CreateScope();
+        var database = scope.ServiceProvider.GetRequiredService<ForumDbContext>();
+
+        await scope.ServiceProvider.GetRequiredService<PostService>()
+            .UnlikeAsync(post.Id, admirer.Id, CancellationToken.None);
+
+        // Deleting a row detaches it, so the caller's own like is gone and the other ten were
+        // never read. Loading the whole collection would leave those ten behind.
+        LikesLoadedFor(database, post.Id).Should().Be(0);
+    }
+
+    /// <summary>A discussion ten other members have liked, and a member who has not.</summary>
+    private async Task<(PostDto Post, Member Newcomer)> PopularDiscussionAsync()
+    {
+        var author = await _members.CreateAsync();
+        var post = await StartDiscussionAsync(author, "Popular", "Plenty of people liked this.");
+
+        for (var i = 0; i < 10; i++)
+        {
+            var admirer = await _members.CreateAsync();
+            (await LikeAsync(admirer, post.Id)).StatusCode.Should().Be(HttpStatusCode.Created);
+        }
+
+        return (post, await _members.CreateAsync());
+    }
+
+    /// <summary>How many of a discussion's likes the context read while doing its work.</summary>
+    private static int LikesLoadedFor(ForumDbContext database, Guid postId)
+        => database.ChangeTracker.Entries<PostLike>()
+            .Count(entry => entry.Entity.PostId == postId);
 
     private async Task<PostDto> StartDiscussionAsync(Member member, string title, string body)
     {

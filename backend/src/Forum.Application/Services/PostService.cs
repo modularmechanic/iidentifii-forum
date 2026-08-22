@@ -63,8 +63,12 @@ public sealed class PostService(IForumDbContext database, TimeProvider clock)
     /// </summary>
     public async Task LikeAsync(Guid postId, Guid userId, CancellationToken cancellationToken)
     {
+        // Only this caller's like is loaded, not every like the discussion has. The entity asks
+        // whether the collection already holds one for them, which is true of a filtered load as
+        // much as a whole one — and a popular discussion no longer costs a row per admirer to
+        // add one more.
         var post = await database.Posts
-            .Include(candidate => candidate.Likes)
+            .Include(candidate => candidate.Likes.Where(like => like.UserId == userId))
             .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
             ?? throw NotFoundException.Discussion(postId);
 
@@ -76,8 +80,9 @@ public sealed class PostService(IForumDbContext database, TimeProvider clock)
     /// <summary>Removes a like, or reports that there was none to remove.</summary>
     public async Task UnlikeAsync(Guid postId, Guid userId, CancellationToken cancellationToken)
     {
+        // The same: removing one like does not require reading the rest.
         var post = await database.Posts
-            .Include(candidate => candidate.Likes)
+            .Include(candidate => candidate.Likes.Where(like => like.UserId == userId))
             .SingleOrDefaultAsync(candidate => candidate.Id == postId, cancellationToken)
             ?? throw NotFoundException.Discussion(postId);
 

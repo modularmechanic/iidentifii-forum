@@ -37,11 +37,11 @@ public sealed class RegistrationTests(ApiFactory factory)
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestJson.Options);
-        problem!.Status.Should().Be(409);
+        problem!.Detail.Should().Contain("username");
     }
 
     [Fact]
-    public async Task An_address_already_registered_is_refused()
+    public async Task An_address_already_registered_is_refused_and_says_what_to_do()
     {
         var first = NewAccount();
         await RegisterAsync(first);
@@ -49,6 +49,11 @@ public sealed class RegistrationTests(ApiFactory factory)
         var response = await RegisterAsync(first with { Username = $"other{Suffix()}" });
 
         response.StatusCode.Should().Be(HttpStatusCode.Conflict);
+
+        // The two conflicts are told apart by the constraint that refused the write, and each
+        // says its own piece: one address needs the sign-in page, one username needs another name.
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(TestJson.Options);
+        problem!.Detail.Should().Contain("email address").And.Contain("reset your password");
     }
 
     /// <summary>Usernames and addresses are compared without regard to case, so neither can be reused.</summary>

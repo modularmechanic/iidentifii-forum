@@ -72,7 +72,7 @@ running. Continuous integration runs exactly these on every pull request.
 
 To exercise the API directly, import
 [`docs/postman/`](docs/postman/iidentifii-forum.postman_collection.json) and run the collection:
-82 requests including every failure case, repeatable without editing anything. See
+89 requests including every failure case, repeatable without editing anything. See
 [test the API with Postman](docs/how-to/test-the-api-with-postman.md).
 
 ## Where things are
