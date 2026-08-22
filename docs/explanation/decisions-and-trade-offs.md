@@ -179,8 +179,8 @@ An empty database is filled with eleven accounts sharing `Password123!`, all con
 before there was anything to look at, which is several minutes spent on nothing.
 
 **What it costs:** a published password. Seeding needs the Development environment *and* the
-setting, so the content cannot reach a real deployment by accident — though a Production start with
-the setting left on says nothing about having skipped it.
+setting, so the content cannot reach a real deployment by accident, and a start with the setting
+left on elsewhere refuses it in the log rather than quietly.
 
 ## Related
 

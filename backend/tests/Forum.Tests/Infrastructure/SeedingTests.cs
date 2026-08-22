@@ -1,7 +1,9 @@
 using FluentAssertions;
 using Forum.Domain.Users;
 using Forum.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -107,20 +109,30 @@ public sealed class SeedingTests : IAsyncLifetime
 
     /// <summary>
     /// The seeded accounts share a published password, so a non-development environment must be
-    /// refused even when the configuration switch asks for content.
+    /// refused even when the configuration switch asks for content — and must say so, or an
+    /// operator is left believing the switch worked. Started the way the application starts, so
+    /// the decision is taken by the code under test rather than by the test.
     /// </summary>
     [Theory]
     [InlineData("Production")]
     [InlineData("Staging")]
     public async Task Seeding_is_refused_outside_development(string environmentName)
     {
-        using (var host = BuildHost(environmentName))
+        var log = new RecordingLogger();
+
+        await using (var api = new Api(_database.GetConnectionString(), environmentName, log))
         {
-            await host.InitialiseDatabaseAsync(seed: true);
+            // The host is built on first use, and starting it runs database initialisation.
+            using var scope = api.Services.CreateScope();
+            _ = scope.ServiceProvider.GetRequiredService<ForumDbContext>();
         }
 
         await using var context = CreateContext();
         (await context.Users.CountAsync()).Should().Be(0);
+        log.Messages.Should().Contain(
+            message => message.Contains("Seeding was requested but refused")
+                && message.Contains(environmentName),
+            "an operator who asks for seeding needs to read why it did not happen");
     }
 
     [Fact]
@@ -135,8 +147,11 @@ public sealed class SeedingTests : IAsyncLifetime
         (await context.Users.CountAsync()).Should().Be(11);
     }
 
-    /// <summary>Captures what the seeder reported, so a test can prove which path it took.</summary>
-    private sealed class RecordingLogger : ILogger<DbSeeder>
+    /// <summary>
+    /// Captures what was logged, so a test can prove which path the code took. Handed to a seeder
+    /// directly, or registered with a host as the provider behind every category.
+    /// </summary>
+    private sealed class RecordingLogger : ILogger<DbSeeder>, ILoggerProvider
     {
         private readonly List<string> _messages = [];
 
@@ -146,6 +161,12 @@ public sealed class SeedingTests : IAsyncLifetime
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+
+        public ILogger CreateLogger(string categoryName) => this;
+
+        public void Dispose()
+        {
+        }
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -170,6 +191,25 @@ public sealed class SeedingTests : IAsyncLifetime
 
     private static DbSeeder CreateSeeder(ForumDbContext context)
         => new(context, new PasswordHasher<User>(), NullLogger<DbSeeder>.Instance);
+
+    /// <summary>
+    /// Hosts the API against this test's database in a named environment, with the seeding switch
+    /// on, so the refusal is decided by the same call path a deployment takes. Development makes
+    /// its own secrets; every other environment expects them, so they are supplied here.
+    /// </summary>
+    private sealed class Api(string connectionString, string environmentName, ILoggerProvider log)
+        : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseEnvironment(environmentName);
+            builder.UseSetting("ConnectionStrings:Forum", connectionString);
+            builder.UseSetting("Database:SeedOnStartup", "true");
+            builder.UseSetting("Tokens:Pepper", "seeding-test-pepper-value-long-enough");
+            builder.UseSetting("Jwt:SigningKey", "seeding-test-signing-key-long-enough-to-pass");
+            builder.ConfigureLogging(logging => logging.AddProvider(log));
+        }
+    }
 
     /// <summary>
     /// Builds the smallest host database initialisation needs. It owns its own context, because

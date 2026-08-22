@@ -34,7 +34,8 @@ one discussion to the next and ordering by popularity is worth looking at.
 
 **These accounts exist for development and assessment only.** They share one published password,
 which is why the API seeds only in the Development environment. Setting `Database:SeedOnStartup`
-anywhere else seeds nothing, silently.
+anywhere else seeds nothing, and the startup log carries a warning naming the environment that
+refused it.
 
 Signing in still takes two steps for a seeded account. Read the code from Mailpit at
 http://localhost:8025.
